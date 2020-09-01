@@ -1,5 +1,5 @@
-AVR Lib
-=======
+AESPL -- ashep's ESP library
+============================
 
 Simple collection of useful stuff for writing programs for ESP MCUs.
 
