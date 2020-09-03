@@ -16,9 +16,14 @@ esp_err_t http_server_start(const char *app_name, httpd_config_t *config);
 esp_err_t http_server_handle(uint8_t method, const char *uri, esp_err_t (*handler)(httpd_req_t *r));
 
 /**
+ * Sends a response
+ */
+esp_err_t http_server_send(httpd_req_t *req, const char *status, const char *body);
+
+/**
  * @brief Prepares and sends a JSON response
  */
-esp_err_t http_server_send_response_json(httpd_req_t *req, uint16_t status, cJSON *json);
+esp_err_t http_server_send_json(httpd_req_t *req, const char *status, cJSON *json);
 
 /**
  * @brief Stops the HTTP server

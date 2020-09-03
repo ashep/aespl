@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include "cJSON.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
@@ -37,7 +38,7 @@ esp_err_t aespl_settings_init(const char *app_name) {
     return err;
 }
 
-esp_err_t settings_set_str(const char *key, const char *value) {
+esp_err_t aespl_settings_set_str(const char *key, const char *value) {
     esp_err_t err;
 
     err = nvs_set_str(nvs_h, key, value);
@@ -53,9 +54,10 @@ esp_err_t settings_set_str(const char *key, const char *value) {
     return err;
 }
 
-esp_err_t settings_get_str(const char *key, char *out_value) {
+char *aespl_settings_get_str(const char *key) {
     size_t sz;
     esp_err_t err;
+    char *val;
 
     err = nvs_get_str(nvs_h, key, NULL, &sz);
     if (err != ESP_OK) {
@@ -69,15 +71,27 @@ esp_err_t settings_get_str(const char *key, char *out_value) {
                 break;
         }
 
-        return err;
+        return NULL;
     }
 
-    char *ov = malloc(sz);
-    err = nvs_get_str(nvs_h, key, ov, &sz);
-    if (err != ESP_OK)
+    val = malloc(sz);
+    err = nvs_get_str(nvs_h, key, val, &sz);
+    if (err != ESP_OK) {
         ESP_LOGE(log_tag, "Error %d while getting value for key '%s'", err, key);
+        free(val);
+        return NULL;
+    }
 
+    return val;
+}
 
+void aespl_settings_get_str_to_json(cJSON *json, const char *settings_k, const char *json_k, const char *dflt) {
+    char *val = aespl_settings_get_str(settings_k);
 
-    return err;
+    if (val) {
+        cJSON_AddStringToObject(json, json_k, val);
+        free(val);
+    } else {
+        cJSON_AddStringToObject(json, json_k, dflt);
+    }
 }

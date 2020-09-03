@@ -25,24 +25,38 @@ esp_err_t http_server_handle(httpd_method_t method, const char *uri, esp_err_t (
     return err;
 }
 
-esp_err_t http_server_send_response_json(httpd_req_t *req, uint16_t status, cJSON *json) {
-    esp_err_t err;
-    char *resp_str = NULL;
-
-    switch (status) {
-        default:
-            httpd_resp_set_status(req, "200 OK");
-            break;
+esp_err_t http_server_send(httpd_req_t *req, const char *status, const char *body) {
+    esp_err_t err = httpd_resp_send(req, body, strlen(body));
+    
+    if (err != ESP_OK) {
+        ESP_LOGE(log_tag, "Unable to send response");
+        return err;
+    } else {
+        ESP_LOGI(log_tag, "%s %s %s", http_method_str(req->method), req->uri, status);
     }
 
-    err = httpd_resp_set_type(req, "application/json");
+    return err;
+}
+
+esp_err_t http_server_send_json(httpd_req_t *req, const char *status, cJSON *json) {
+    esp_err_t err;
+
+    err = httpd_resp_set_type(req, HTTPD_TYPE_JSON);
     if (err != ESP_OK) {
+        ESP_LOGE(log_tag, "Unable to set response content type");
         return err;
     }
 
-    resp_str = cJSON_PrintUnformatted(json);
-    err = httpd_resp_send(req, resp_str, strlen(resp_str));
-    free(resp_str);
+    err = httpd_resp_set_status(req, status);
+    if (err != ESP_OK) {
+        ESP_LOGE(log_tag, "Unable to set response status");
+        return err;
+    }
+
+    char *body = cJSON_PrintUnformatted(json);
+
+    err = http_server_send(req, status, body);
+    free(body);
 
     return err;
 }
@@ -76,4 +90,3 @@ esp_err_t http_server_start(const char *app_name, httpd_config_t *config) {
 
     return ESP_OK;
 }
-
