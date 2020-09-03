@@ -3,6 +3,7 @@
 
 #include "cJSON.h"
 #include "esp_err.h"
+#include "esp_http_server.h"
 
 /**
  * @brief Initializes the settings storage
@@ -25,5 +26,10 @@ char *aespl_settings_get_str(const char *key);
  * @brief Retrieves a string value and stores it into a JSON structure
  */
 void aespl_settings_get_str_to_json(cJSON *json, const char *settings_k, const char *json_k, const char *dflt);
+
+/**
+ * @brief Register settings HTTPd handlers
+ */
+esp_err_t aespl_settings_httpd_register_handlers(const char *prefix);
 
 #endif

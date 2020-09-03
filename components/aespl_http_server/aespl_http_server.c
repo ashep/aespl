@@ -8,7 +8,7 @@ static char *log_tag = NULL;
 static httpd_config_t *server_config = NULL;
 static httpd_handle_t server = NULL;
 
-esp_err_t http_server_handle(httpd_method_t method, const char *uri, esp_err_t (*handler)(httpd_req_t *r)) {
+esp_err_t aespl_httpd_handle(httpd_method_t method, const char *uri, esp_err_t (*handler)(httpd_req_t *r)) {
     httpd_uri_t h = {
         .uri = uri,
         .method = method,
@@ -25,9 +25,9 @@ esp_err_t http_server_handle(httpd_method_t method, const char *uri, esp_err_t (
     return err;
 }
 
-esp_err_t http_server_send(httpd_req_t *req, const char *status, const char *body) {
+esp_err_t aespl_httpd_send(httpd_req_t *req, const char *status, const char *body) {
     esp_err_t err = httpd_resp_send(req, body, strlen(body));
-    
+
     if (err != ESP_OK) {
         ESP_LOGE(log_tag, "Unable to send response");
         return err;
@@ -38,7 +38,7 @@ esp_err_t http_server_send(httpd_req_t *req, const char *status, const char *bod
     return err;
 }
 
-esp_err_t http_server_send_json(httpd_req_t *req, const char *status, cJSON *json) {
+esp_err_t aespl_httpd_send_json(httpd_req_t *req, const char *status, cJSON *json) {
     esp_err_t err;
 
     err = httpd_resp_set_type(req, HTTPD_TYPE_JSON);
@@ -55,17 +55,17 @@ esp_err_t http_server_send_json(httpd_req_t *req, const char *status, cJSON *jso
 
     char *body = cJSON_PrintUnformatted(json);
 
-    err = http_server_send(req, status, body);
+    err = aespl_httpd_send(req, status, body);
     free(body);
 
     return err;
 }
 
-esp_err_t http_server_stop() {
+esp_err_t aespl_httpd_stop() {
     return httpd_stop(server);
 }
 
-esp_err_t http_server_start(const char *app_name, httpd_config_t *config) {
+esp_err_t aespl_httpd_start(const char *app_name, httpd_config_t *config) {
     log_tag = malloc(strlen(app_name) + strlen("_http_server") + 1);
     if (!log_tag) {
         ESP_LOGE("aespl_settings_init", "malloc() error");
