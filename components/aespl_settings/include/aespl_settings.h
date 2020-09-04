@@ -27,9 +27,4 @@ char *aespl_settings_get_str(const char *key);
  */
 void aespl_settings_get_str_to_json(cJSON *json, const char *settings_k, const char *json_k, const char *dflt);
 
-/**
- * @brief Register settings HTTPd handlers
- */
-esp_err_t aespl_settings_httpd_register_handlers(const char *prefix);
-
 #endif
