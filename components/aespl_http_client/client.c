@@ -1,3 +1,10 @@
+/**
+ * Simplified HTTP client ESP8266
+ * 
+ * Author: Alexander Shepetko <a@shepetko.com>
+ * License: MIT
+ */
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -76,7 +83,7 @@ static int http_parser_on_body(http_parser *parser, const char *at, size_t lengt
     return 0;
 }
 
-esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method method, const char *url,
+esp_err_t aespl_http_client_request(aespl_http_response *response, enum http_method method, const char *url,
                                     http_header_handle_t headers, const char *body) {
     int err_i;
 
@@ -86,13 +93,13 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
     err_i = http_parser_parse_url(url, strlen(url), false, &parsed_url);
     if (err_i) {
         ESP_LOGE("Error parsing URL: %s", url);
-        return err_i;
+        return ESP_FAIL;
     }
 
     // Parse hostname
     if (!(parsed_url.field_set & (1 << UF_HOST))) {
         ESP_LOGE("Host not found in URL: %s", url);
-        return err_i;
+        return ESP_FAIL;
     }
     char *host = malloc(parsed_url.field_data[UF_HOST].len + 1);
     bzero(host, parsed_url.field_data[UF_HOST].len + 1);
@@ -120,7 +127,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
         ESP_LOGE(LOG_TAG, "getaddrinfo(\"%s\", \"%s\") failed, error %d", host, port, err_i);
         free(host);
         free(port);
-        return err_i;
+        return ESP_FAIL;
     }
     struct in_addr *addr = &((struct sockaddr_in *)addr_info->ai_addr)->sin_addr;
     ESP_LOGI(LOG_TAG, "IP address of \"%s\": %s", host, inet_ntoa(*addr));
@@ -132,7 +139,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
         freeaddrinfo(addr_info);
         free(host);
         free(port);
-        return sock;
+        return ESP_FAIL;
     }
 
     // Open connection
@@ -143,7 +150,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
         freeaddrinfo(addr_info);
         free(host);
         free(port);
-        return err_i;
+        return ESP_FAIL;
     }
     freeaddrinfo(addr_info);
 
@@ -171,10 +178,10 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
 
     // Build headers string
     char *headers_str = NULL;
-    int headers_str_len = HTTP_MAX_HEADER_SIZE;
+    int headers_len = 512;
     if (headers) {
-        headers_str = malloc(headers_str_len);
-        http_header_generate_string(headers, 0, headers_str, &headers_str_len);
+        headers_str = malloc(headers_len);
+        http_header_generate_string(headers, 0, headers_str, &headers_len);
     }
 
     // Calculate request length
@@ -185,7 +192,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
     req_len += strlen("Host: ") + strlen(host) + 2;
     req_len += strlen("User-Agent: ") + strlen(USER_AGENT) + 2;
     if (headers_str) {
-        req_len += headers_str_len;
+        req_len += headers_len;
     }
     req_len += 2;  // "\r\n"
     if (method != HTTP_GET && body) {
@@ -215,6 +222,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
     free(port);
     free(path);
     free(query);
+    free(headers_str);
 
     printf("--- REQUEST\n");
     printf("%s", req);
@@ -226,7 +234,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
         ESP_LOGE(LOG_TAG, "Socket write failed");
         free(req);
         close(sock);
-        return err_i;
+        return ESP_FAIL;
     }
     free(req);
 
@@ -239,7 +247,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
     if (err_i < 0) {
         ESP_LOGE(LOG_TAG, "Failed to set socket receiving timeout");
         close(sock);
-        return err_i;
+        return ESP_FAIL;
     }
 
     // Read HTTP response
@@ -255,7 +263,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
             ESP_LOGW(LOG_TAG, "Error while reading from the socket: %d", bytes_read);
             free(resp_str);
             close(sock);
-            return bytes_read;
+            return ESP_FAIL;
         }
 
         // Concatenate read bytes
@@ -294,24 +302,47 @@ esp_err_t aespl_http_client_request(aespl_http_response *resp, enum http_method 
     parser_settings.on_message_complete = &http_parser_on_message_complete;
 
     // Initialize response struct
-    memset(resp, 0, sizeof(*resp));
-    resp->headers = http_header_init();
+    memset(response, 0, sizeof(*response));
+    response->headers = http_header_init();
 
     // Parse the response
-    current_resp = resp;
+    current_resp = response;
     http_parser_execute(&parser, &parser_settings, resp_str, resp_len);
 
     // Free response string
     free(resp_str);
 
-    resp->status_code = parser.status_code;
-    resp->content_length = parser.content_length;
+    response->status_code = parser.status_code;
+    response->content_length = parser.content_length;
 
     return ESP_OK;
 }
 
-esp_err_t aespl_http_client_get(aespl_http_response *resp, const char *url, http_header_handle_t headers) {
-    return aespl_http_client_request(resp, HTTP_GET, url, headers, NULL);
+esp_err_t aespl_http_client_get(aespl_http_response *response, const char *url, http_header_handle_t headers) {
+    return aespl_http_client_request(response, HTTP_GET, url, headers, NULL);
+}
+
+esp_err_t aespl_http_client_get_json(aespl_http_response *response, const char *url, http_header_handle_t headers) {
+    esp_err_t err;
+    bool own_headers = false;
+    
+    if (!headers) {
+        own_headers = true;
+        headers = http_header_init();
+    }
+
+    http_header_set(headers, "Accept", "application/json");
+
+    err = aespl_http_client_get(response, url, headers);
+    if (!err && response->status_code >= 200 && response->status_code < 300) {
+        response->json = cJSON_Parse(response->body);
+    }
+    
+    if (own_headers) {
+        http_header_destroy(headers);
+    }
+
+    return err;
 }
 
 void aespl_http_client_free(aespl_http_response *resp) {
@@ -329,5 +360,9 @@ void aespl_http_client_free(aespl_http_response *resp) {
 
     if (resp->headers) {
         http_header_destroy(resp->headers);
+    }
+
+    if (resp->json) {
+        cJSON_Delete(resp->json);
     }
 }
