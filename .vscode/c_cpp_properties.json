@@ -13,6 +13,8 @@
                 "${IDF_PATH}/components/freertos/include/freertos/private",
                 "${IDF_PATH}/components/freertos/port/esp8266/include",
                 "${IDF_PATH}/components/freertos/port/esp8266/include/freertos",
+                "${IDF_PATH}/components/newlib/newlib/include",
+                "${IDF_PATH}/components/esp_common/include",
                 "${IDF_PATH}/components/newlib/newlib/port/include",
                 "${IDF_PATH}/components/esp_common/include",
                 "${IDF_PATH}/components/esp8266/include",
