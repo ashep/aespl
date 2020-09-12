@@ -218,3 +218,14 @@ esp_err_t aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uin
 
     return ESP_OK;
 }
+
+esp_err_t aespl_gfx_rect(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const aespl_gfx_point_t p2, uint32_t color) {
+    aespl_gfx_point_t points[4] = {
+        p1,
+        (aespl_gfx_point_t){p2.x, p1.y},
+        p2,
+        (aespl_gfx_point_t){p1.x, p2.y},
+    };
+
+    return aespl_gfx_poly(buf, &((aespl_gfx_poly_t){4, points}), color);
+}

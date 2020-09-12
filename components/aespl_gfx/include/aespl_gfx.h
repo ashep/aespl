@@ -121,3 +121,16 @@ esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uin
  *      - ESP_ERR_INVALID_ARG
  */
 esp_err_t aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uint32_t color);
+
+/**
+ * @brief Draw a rectangle
+ *
+ * @param buf[out]  Buffer
+ * @param p1[in]    Top left point
+ * @param p2[in]    Bottom right point
+ * @param color[in] Color
+ * @return
+ *      - ESP_OK
+ *      - ESP_ERR_INVALID_ARG
+ */
+esp_err_t aespl_gfx_rect(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const aespl_gfx_point_t p2, uint32_t color);
