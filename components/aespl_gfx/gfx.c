@@ -5,6 +5,7 @@
  * License: MIT
  */
 
+#include "stdint.h"
 #include "stdlib.h"
 #include "strings.h"
 #include "esp_err.h"
@@ -31,7 +32,7 @@ esp_err_t aespl_gfx_buf_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t heig
             buf->ppw = sizeof(**buf->content) * 8 / 16;  // 16 bits per pixel
             break;
         case AESPL_GFX_COLOR_ARGB888:
-            buf->ppw = 1; // 32 bit per pixel
+            buf->ppw = 1;  // 32 bit per pixel
             break;
         default:
             return ESP_ERR_INVALID_ARG;
@@ -103,9 +104,9 @@ void aespl_gfx_buf_print(const aespl_gfx_buf_t *buf) {
     }
 }
 
-void aespl_gfx_buf_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value) {
+esp_err_t aespl_gfx_buf_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value) {
     if (x >= buf->width || y >= buf->height) {
-        return;
+        return ESP_ERR_INVALID_ARG;
     }
 
     size_t word_bits = sizeof(**buf->content) * 8;
@@ -124,4 +125,32 @@ void aespl_gfx_buf_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t
             buf->content[y][word_n] = value;
             break;
     }
+
+    return ESP_OK;
+}
+
+esp_err_t aespl_gfx_buf_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *value) {
+    if (x >= buf->width || y >= buf->height) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    size_t word_bits = sizeof(**buf->content) * 8;
+    uint16_t word_n = buf->wpr - 1 - x / buf->ppw;
+    uint32_t w = buf->content[y][word_n];
+
+    switch (buf->color) {
+        case AESPL_GFX_COLOR_MONO:
+            *value = 1 & (w >> (word_bits - x - 1 % word_bits));
+            break;
+
+        case AESPL_GFX_COLOR_RGB565:
+            *value = 0xffff & (w >> ((x % 2) ? 0 : 16));
+            break;
+
+        case AESPL_GFX_COLOR_ARGB888:
+            *value = w;
+            break;
+    }
+
+    return ESP_OK;
 }
