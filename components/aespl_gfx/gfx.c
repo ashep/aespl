@@ -12,10 +12,10 @@
 #include "aespl_gfx.h"
 #include "aespl_util.h"
 
-esp_err_t aespl_gfx_buf_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_mode_t color) {
+esp_err_t aespl_gfx_buf_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color) {
     buf->width = width;
     buf->height = height;
-    buf->color_mode = color;
+    buf->color = color;
     buf->content = calloc(height, sizeof(buf->content));  // pointers to rows
 
     if (!buf->content) {
@@ -23,12 +23,18 @@ esp_err_t aespl_gfx_buf_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t heig
     }
 
     // Pixels per row
-    if (color == AESPL_GFX_COLOR_MONO) {
-        buf->ppw = sizeof(**buf->content) * 8;  // 8 bits per pixel
-    } else if (color == AESPL_GFX_COLOR_RGB565) {
-        buf->ppw = sizeof(**buf->content) * 8 / 16;  // 16 bits per pixel
-    } else {
-        return ESP_ERR_INVALID_ARG;
+    switch (color) {
+        case AESPL_GFX_COLOR_MONO:
+            buf->ppw = sizeof(**buf->content) * 8;  // 8 bits per pixel,
+            break;
+        case AESPL_GFX_COLOR_RGB565:
+            buf->ppw = sizeof(**buf->content) * 8 / 16;  // 16 bits per pixel
+            break;
+        case AESPL_GFX_COLOR_ARGB888:
+            buf->ppw = 1; // 32 bit per pixel
+            break;
+        default:
+            return ESP_ERR_INVALID_ARG;
     }
 
     // Words per row
@@ -72,7 +78,7 @@ void aespl_gfx_buf_clear(aespl_gfx_buf_t *buf) {
     }
 }
 
-void aespl_gfx_buf_print(aespl_gfx_buf_t *buf) {
+void aespl_gfx_buf_print(const aespl_gfx_buf_t *buf) {
     for (uint16_t r = 0; r < buf->height; r++) {
         for (uint16_t w = buf->wpr; w > 0; w--) {
             if (w == buf->wpr) {
@@ -94,5 +100,28 @@ void aespl_gfx_buf_print(aespl_gfx_buf_t *buf) {
                 printf("|");
             }
         }
+    }
+}
+
+void aespl_gfx_buf_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value) {
+    if (x >= buf->width || y >= buf->height) {
+        return;
+    }
+
+    size_t word_bits = sizeof(**buf->content) * 8;
+    uint16_t word_n = buf->wpr - 1 - x / buf->ppw;
+
+    switch (buf->color) {
+        case AESPL_GFX_COLOR_MONO:
+            buf->content[y][word_n] |= 1 << (word_bits - x - 1 % word_bits);
+            break;
+
+        case AESPL_GFX_COLOR_RGB565:
+            buf->content[y][word_n] |= value << ((x % 2) ? 0 : 16);
+            break;
+
+        case AESPL_GFX_COLOR_ARGB888:
+            buf->content[y][word_n] = value;
+            break;
     }
 }
