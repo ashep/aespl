@@ -34,28 +34,28 @@ typedef struct {
  *      - ESP_OK
  *      - ESP_ERR_NO_MEM
  */
-esp_err_t aespl_gfx_buf_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color);
+esp_err_t aespl_gfx_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color);
 
 /**
  * @brief Free resources allocated by aespl_gfx_buf_init()
  *
  * @param buf Buffer
  */
-void aespl_gfx_buf_free(aespl_gfx_buf_t *buf);
+void aespl_gfx_free(aespl_gfx_buf_t *buf);
 
 /**
  * @brief Clear a buffer
  *
  * @param buf Buffer
  */
-void aespl_gfx_buf_clear(aespl_gfx_buf_t *buf);
+void aespl_gfx_clear(aespl_gfx_buf_t *buf);
 
 /**
  * @brief Print buffer's content
  *
  * @param buf Buffer
  */
-void aespl_gfx_buf_print(const aespl_gfx_buf_t *buf);
+void aespl_gfx_print_buf(const aespl_gfx_buf_t *buf);
 
 /**
  * @brief Set a pixel
@@ -63,22 +63,37 @@ void aespl_gfx_buf_print(const aespl_gfx_buf_t *buf);
  * @param buf[out]  Buffer
  * @param x[in]     X position
  * @param y[in]     Y position
- * @param value[in] Pixel value
+ * @param value[in] Color value
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_buf_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value);
+esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value);
 
 /**
  * @brief Get a pixel
  *
- * @param buf[in]  Buffer
- * @param x[in]     X position
- * @param y[in]     Y position
- * @param value[out] Pixel value
+ * @param buf[in]    Buffer
+ * @param x[in]      X position
+ * @param y[in]      Y position
+ * @param value[out] Color value
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_buf_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *value);
+esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *value);
+
+/**
+ * @brief Draw a line
+ *
+ * @param buf[out]  Buffer
+ * @param x1[in]    X1 position
+ * @param y1[in]    Y1 position
+ * @param x2[in]    X2 position
+ * @param y2[in]    Y2 position
+ * @param color[in] Color
+ * @return
+ *      - ESP_OK
+ *      - ESP_ERR_INVALID_ARG
+ */
+esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);

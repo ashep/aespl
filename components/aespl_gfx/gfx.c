@@ -5,15 +5,16 @@
  * License: MIT
  */
 
-#include "stdint.h"
 #include "stdlib.h"
+#include "stdint.h"
 #include "strings.h"
+#include "math.h"
 #include "esp_err.h"
 #include "esp_err.h"
 #include "aespl_gfx.h"
 #include "aespl_util.h"
 
-esp_err_t aespl_gfx_buf_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color) {
+esp_err_t aespl_gfx_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color) {
     buf->width = width;
     buf->height = height;
     buf->color = color;
@@ -51,12 +52,12 @@ esp_err_t aespl_gfx_buf_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t heig
     }
 
     // Fill buffer with zeroes
-    aespl_gfx_buf_clear(buf);
+    aespl_gfx_clear(buf);
 
     return ESP_OK;
 }
 
-void aespl_gfx_buf_free(aespl_gfx_buf_t *buf) {
+void aespl_gfx_free(aespl_gfx_buf_t *buf) {
     // Rows
     for (uint16_t r = 0; r < buf->height; r++) {
         free(buf->content[r]);
@@ -66,7 +67,7 @@ void aespl_gfx_buf_free(aespl_gfx_buf_t *buf) {
     free(buf->content);
 }
 
-void aespl_gfx_buf_clear(aespl_gfx_buf_t *buf) {
+void aespl_gfx_clear(aespl_gfx_buf_t *buf) {
     if (buf->content) {
         return;
     }
@@ -79,7 +80,7 @@ void aespl_gfx_buf_clear(aespl_gfx_buf_t *buf) {
     }
 }
 
-void aespl_gfx_buf_print(const aespl_gfx_buf_t *buf) {
+void aespl_gfx_print_buf(const aespl_gfx_buf_t *buf) {
     for (uint16_t r = 0; r < buf->height; r++) {
         for (uint16_t w = buf->wpr; w > 0; w--) {
             if (w == buf->wpr) {
@@ -104,7 +105,7 @@ void aespl_gfx_buf_print(const aespl_gfx_buf_t *buf) {
     }
 }
 
-esp_err_t aespl_gfx_buf_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value) {
+esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value) {
     if (x >= buf->width || y >= buf->height) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -129,7 +130,7 @@ esp_err_t aespl_gfx_buf_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uin
     return ESP_OK;
 }
 
-esp_err_t aespl_gfx_buf_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *value) {
+esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *value) {
     if (x >= buf->width || y >= buf->height) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -150,6 +151,47 @@ esp_err_t aespl_gfx_buf_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t 
         case AESPL_GFX_COLOR_ARGB888:
             *value = w;
             break;
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color) {
+    if (x2 >= buf->width) {
+        x2 = buf->width - 1;
+    }
+    if (y2 >= buf->height) {
+        y2 = buf->height - 1;
+    }
+
+    float x = x1, y = y1, dx = x2 - x1, dy = y2 - y1;
+    uint16_t step, abs_dx = abs(dx), abs_dy = abs(dy);
+
+    step = abs_dx >= abs_dy ? abs_dx : abs_dy;
+    dx /= step;
+    dy /= step;
+
+    uint16_t i = 0;
+    esp_err_t err;
+    while (i <= step) {
+        if (i == step) {
+            if (x < x2) {
+                x = x2;
+            }
+            if (y < y2) {
+                y = y2;
+            }
+        }
+
+        err = aespl_gfx_set_px(buf, abs(x), abs(y), color);
+        if (err) {
+            return err;
+        }
+
+        x += dx;
+        y += dy;
+
+        ++i;
     }
 
     return ESP_OK;
