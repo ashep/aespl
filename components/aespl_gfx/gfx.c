@@ -156,7 +156,9 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
     return ESP_OK;
 }
 
-esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color) {
+esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uint32_t color) {
+    uint16_t x1 = line->p1.x, x2 = line->p2.x, y1 = line->p1.y, y2 = line->p2.y;
+
     if (x2 >= buf->width) {
         x2 = buf->width - 1;
     }
@@ -192,6 +194,26 @@ esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, uint16_t x1, uint16_t y1, uint16_
         y += dy;
 
         ++i;
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uint32_t color) {
+    esp_err_t err;
+    aespl_gfx_line_t l;
+
+    for (uint8_t i = 0; i < poly->n_corners; i++) {
+        if (i < poly->n_corners - 1) {
+            l = (aespl_gfx_line_t){poly->corners[i], poly->corners[i + 1]};
+        } else {
+            l = (aespl_gfx_line_t){poly->corners[i], poly->corners[0]};
+        }
+
+        err = aespl_gfx_line(buf, &l, color);
+        if (err) {
+            return err;
+        }
     }
 
     return ESP_OK;

@@ -23,6 +23,21 @@ typedef struct {
     uint32_t **content;       // pixels
 } aespl_gfx_buf_t;
 
+typedef struct {
+    uint16_t x;
+    uint16_t y;
+} aespl_gfx_point_t;
+
+typedef struct {
+    aespl_gfx_point_t p1;
+    aespl_gfx_point_t p2;
+} aespl_gfx_line_t;
+
+typedef struct {
+    uint8_t n_corners;
+    aespl_gfx_point_t *corners;
+} aespl_gfx_poly_t;
+
 /**
  * @brief Initialize a buffer
  *
@@ -87,13 +102,22 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
  * @brief Draw a line
  *
  * @param buf[out]  Buffer
- * @param x1[in]    X1 position
- * @param y1[in]    Y1 position
- * @param x2[in]    X2 position
- * @param y2[in]    Y2 position
+ * @param line[in]  Line
  * @param color[in] Color
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);
+esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uint32_t color);
+
+/**
+ * @brief Draw a polygon
+ *
+ * @param buf[out]  Buffer
+ * @param poly[in]  Polygon
+ * @param color[in] Color
+ * @return
+ *      - ESP_OK
+ *      - ESP_ERR_INVALID_ARG
+ */
+esp_err_t aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uint32_t color);
