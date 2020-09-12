@@ -134,3 +134,18 @@ esp_err_t aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uin
  *      - ESP_ERR_INVALID_ARG
  */
 esp_err_t aespl_gfx_rect(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const aespl_gfx_point_t p2, uint32_t color);
+
+/**
+ * @brief Draw a triangle
+ *
+ * @param buf[out]  Buffer
+ * @param p1[in]    Point 1
+ * @param p2[in]    Point 2
+ * @param p3[in]    Point 3
+ * @param color[in] Color
+ * @return
+ *      - ESP_OK
+ *      - ESP_ERR_INVALID_ARG
+ */
+esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const aespl_gfx_point_t p2,
+                        const aespl_gfx_point_t p3, uint32_t color);
