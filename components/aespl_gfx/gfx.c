@@ -15,7 +15,7 @@
 #include "aespl_gfx.h"
 #include "aespl_util.h"
 
-esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color) {
+esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_cmode_t color) {
     buf->width = width;
     buf->height = height;
     buf->color = color;
@@ -27,13 +27,13 @@ esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t heig
 
     // Pixels per row
     switch (color) {
-        case AESPL_GFX_COLOR_MONO:
+        case AESPL_GFX_CMODE_MONO:
             buf->ppw = sizeof(**buf->content) * 8;  // 8 bits per pixel,
             break;
-        case AESPL_GFX_COLOR_RGB565:
+        case AESPL_GFX_CMODE_RGB565:
             buf->ppw = sizeof(**buf->content) * 8 / 16;  // 16 bits per pixel
             break;
-        case AESPL_GFX_COLOR_ARGB888:
+        case AESPL_GFX_CMODE_ARGB888:
             buf->ppw = 1;  // 32 bit per pixel
             break;
         default:
@@ -108,15 +108,15 @@ esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_
     uint16_t word_n = buf->wpr - 1 - x / buf->ppw;
 
     switch (buf->color) {
-        case AESPL_GFX_COLOR_MONO:
+        case AESPL_GFX_CMODE_MONO:
             buf->content[y][word_n] |= value << (word_bits - x - 1 % word_bits);
             break;
 
-        case AESPL_GFX_COLOR_RGB565:
+        case AESPL_GFX_CMODE_RGB565:
             buf->content[y][word_n] |= value << ((x % 2) ? 0 : 16);
             break;
 
-        case AESPL_GFX_COLOR_ARGB888:
+        case AESPL_GFX_CMODE_ARGB888:
             buf->content[y][word_n] = value;
             break;
     }
@@ -134,15 +134,15 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
     uint32_t w = buf->content[y][word_n];
 
     switch (buf->color) {
-        case AESPL_GFX_COLOR_MONO:
+        case AESPL_GFX_CMODE_MONO:
             *value = 1 & (w >> (word_bits - x - 1 % word_bits));
             break;
 
-        case AESPL_GFX_COLOR_RGB565:
+        case AESPL_GFX_CMODE_RGB565:
             *value = 0xffff & (w >> ((x % 2) ? 0 : 16));
             break;
 
-        case AESPL_GFX_COLOR_ARGB888:
+        case AESPL_GFX_CMODE_ARGB888:
             *value = w;
             break;
     }
@@ -169,7 +169,6 @@ esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aesp
 esp_err_t aespl_gfx_move(aespl_gfx_buf_t *buf, aespl_gfx_point_t rel_p) {
     esp_err_t err;
     aespl_gfx_buf_t tmp_buf;
-    aespl_gfx_point_t p;
 
     err = aespl_gfx_init_buf(&tmp_buf, buf->width, buf->height, buf->color);
     if (err) {
@@ -328,6 +327,23 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
                 return err;
             }
         }
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t aespl_gfx_puts(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t *pos, char *s,
+                         uint32_t color, uint8_t space) {
+    esp_err_t err;
+    uint8_t ch_width = 0;
+
+    while (*s) {
+        err = aespl_gfx_putc(buf, font, *pos, *s++, color, &ch_width);
+        if (err) {
+            return err;
+        }
+
+        pos->x += ch_width + space;
     }
 
     return ESP_OK;

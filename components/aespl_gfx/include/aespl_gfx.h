@@ -15,10 +15,18 @@
  * Color modes
  */
 typedef enum {
-    AESPL_GFX_COLOR_MONO,
-    AESPL_GFX_COLOR_RGB565,
-    AESPL_GFX_COLOR_ARGB888,
-} aespl_gfx_color_t;
+    AESPL_GFX_CMODE_MONO,
+    AESPL_GFX_CMODE_RGB565,
+    AESPL_GFX_CMODE_ARGB888,
+} aespl_gfx_cmode_t;
+
+/**
+ * Common colors
+ */
+typedef enum {
+    AESPL_COLOR_MONO_0,
+    AESPL_C_MONO_1,
+};
 
 /**
  * Graphics buffer
@@ -26,7 +34,7 @@ typedef enum {
 typedef struct {
     uint16_t width;           // columns
     uint16_t height;          // rows
-    aespl_gfx_color_t color;  // color mode
+    aespl_gfx_cmode_t color;  // color mode
     uint8_t ppw;              // pixels per 2-byte word
     uint8_t wpr;              // 2-byte words per row
     uint32_t **content;       // pixels
@@ -93,7 +101,7 @@ typedef struct {
  *      - ESP_OK
  *      - ESP_ERR_NO_MEM
  */
-esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color);
+esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_cmode_t color);
 
 /**
  * @brief Free resources allocated by aespl_gfx_buf_init()
@@ -232,5 +240,8 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
  */
 esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, char ch,
                          uint32_t color, uint8_t *ch_width);
+
+esp_err_t aespl_gfx_puts(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t *pos, char *s,
+                         uint32_t color, uint8_t space);
 
 #endif
