@@ -11,12 +11,18 @@
 #include "stdint.h"
 #include "esp_err.h"
 
+/**
+ * Color modes
+ */
 typedef enum {
     AESPL_GFX_COLOR_MONO,
     AESPL_GFX_COLOR_RGB565,
     AESPL_GFX_COLOR_ARGB888,
 } aespl_gfx_color_t;
 
+/**
+ * Graphics buffer
+ */
 typedef struct {
     uint16_t width;           // columns
     uint16_t height;          // rows
@@ -26,21 +32,33 @@ typedef struct {
     uint32_t **content;       // pixels
 } aespl_gfx_buf_t;
 
+/**
+ * Point coordinates
+ */
 typedef struct {
     uint16_t x;
     uint16_t y;
 } aespl_gfx_point_t;
 
+/**
+ * Line
+ */
 typedef struct {
     aespl_gfx_point_t p1;
     aespl_gfx_point_t p2;
 } aespl_gfx_line_t;
 
+/**
+ * Polygon
+ */
 typedef struct {
     uint8_t n_corners;
     aespl_gfx_point_t *corners;
 } aespl_gfx_poly_t;
 
+/**
+ * Font widths
+ */
 typedef enum {
     AESPL_GFX_FONT_WIDTH_8 = 8,
     AESPL_GFX_FONT_WIDTH_16 = 16,
@@ -48,16 +66,20 @@ typedef enum {
     AESPL_GFX_FONT_WIDTH_64 = 64,
 } aespl_gfx_font_width_t;
 
+/**
+ * Font
+ */
 typedef struct {
     uint8_t ascii_offset;          // char code offset relative to ASCII table
     uint8_t size;                  // number of covered ASCII codes staring from ascii_offset
     aespl_gfx_font_width_t width;  // number of bits per row
     uint8_t height;                // number of rows per character
-    uint8_t spacing;               // space between characters in pixels
-    const uint8_t *content_8;      // pointer to 1-byte content
-    const uint16_t *content_16;    // pointer to 2-byte content
-    const uint32_t *content_32;    // pointer to 4-byte content
-    const uint64_t *content_64;    // pointer to 8-byte content
+    union {
+        const uint8_t *c8;    // pointer to 1-byte content
+        const uint16_t *c16;  // pointer to 2-byte content
+        const uint32_t *c32;  // pointer to 4-byte content
+        const uint64_t *c64;  // pointer to 8-byte content
+    } content;
 } aespl_gfx_font_t;
 
 /**

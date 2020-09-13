@@ -252,19 +252,19 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
     uint8_t ch_cols = 0;
     switch (font->width) {
         case AESPL_GFX_FONT_WIDTH_8:
-            ch_p = (uint8_t *)&font->content_8[offset];
+            ch_p = (uint8_t *)&font->content.c8[offset];
             ch_cols = *(uint8_t *)ch_p++;
             break;
         case AESPL_GFX_FONT_WIDTH_16:
-            ch_p = (uint16_t *)&font->content_16[offset];
+            ch_p = (uint16_t *)&font->content.c16[offset];
             ch_cols = *(uint16_t *)ch_p++;
             break;
         case AESPL_GFX_FONT_WIDTH_32:
-            ch_p = (uint32_t *)&font->content_32[offset];
+            ch_p = (uint32_t *)&font->content.c32[offset];
             ch_cols = *(uint32_t *)ch_p++;
             break;
         case AESPL_GFX_FONT_WIDTH_64:
-            ch_p = (uint64_t *)&font->content_64[offset];
+            ch_p = (uint64_t *)&font->content.c64[offset];
             ch_cols = *(uint64_t *)ch_p++;
             break;
     }

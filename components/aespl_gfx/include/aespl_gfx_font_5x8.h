@@ -117,8 +117,7 @@ aespl_gfx_font_t font5x8 = {
     .size = 104,
     .width = 8,
     .height = 8,
-    .spacing = 1,
-    .content_8 = _font5x8,
+    .content.c8 = _font5x8,
 };
 
 #endif
