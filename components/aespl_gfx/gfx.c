@@ -270,7 +270,7 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
 }
 
 esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, char ch,
-                         uint32_t color) {
+                         uint32_t color, uint8_t *ch_width) {
     esp_err_t err;
 
     // If the character is not covered by the font
@@ -282,23 +282,22 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
     uint16_t offset = (ch - font->ascii_offset) * (font->height + 1);
 
     void *ch_p = NULL;
-    uint8_t ch_cols = 0;
     switch (font->width) {
         case AESPL_GFX_FONT_WIDTH_8:
             ch_p = (uint8_t *)&font->content.c8[offset];
-            ch_cols = *(uint8_t *)ch_p++;
+            *ch_width = *(uint8_t *)ch_p++;
             break;
         case AESPL_GFX_FONT_WIDTH_16:
             ch_p = (uint16_t *)&font->content.c16[offset];
-            ch_cols = *(uint16_t *)ch_p++;
+            *ch_width = *(uint16_t *)ch_p++;
             break;
         case AESPL_GFX_FONT_WIDTH_32:
             ch_p = (uint32_t *)&font->content.c32[offset];
-            ch_cols = *(uint32_t *)ch_p++;
+            *ch_width = *(uint32_t *)ch_p++;
             break;
         case AESPL_GFX_FONT_WIDTH_64:
             ch_p = (uint64_t *)&font->content.c64[offset];
-            ch_cols = *(uint64_t *)ch_p++;
+            *ch_width = *(uint64_t *)ch_p++;
             break;
     }
 
@@ -322,7 +321,7 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
                 return ESP_ERR_INVALID_ARG;
         }
 
-        for (int8_t n = 0, col_n = font->width - 1; n < ch_cols; n++, col_n--) {
+        for (int8_t n = 0, col_n = font->width - 1; n < *ch_width; n++, col_n--) {
             uint32_t px_color = 1 & (row >> col_n) ? color : 0;
             err = aespl_gfx_set_px(buf, pos.x + n, pos.y + row_n, px_color);
             if (err) {

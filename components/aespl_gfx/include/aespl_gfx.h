@@ -220,16 +220,17 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
 /**
  * @brief Draw a character
  *
- * @param buf   Buffer
- * @param font  Font
- * @param point Coordinates
- * @param ch    Character
- * @param color Color
+ * @param buf      Buffer
+ * @param font     Font
+ * @param point    Coordinates
+ * @param ch       Character
+ * @param color    Color
+ * @param ch_width Drawn character width
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
 esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, char ch,
-                         uint32_t color);
+                         uint32_t color, uint8_t *ch_width);
 
 #endif
