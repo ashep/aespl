@@ -142,6 +142,19 @@ esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_
  */
 esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *value);
 
+
+/**
+ * @brief Merge the `src` buffer into the `dst` buffer
+ *
+ * @param dst[out] Target buffer
+ * @param src[in]  Source buffer
+ * @param p[in]    Target buffer coordinates
+ * @return
+ *      - ESP_OK
+ *      - ESP_ERR_INVALID_ARG
+ */
+esp_err_t aespl_gfx_merge_buf(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t p);
+
 /**
  * @brief Draw a line
  *
@@ -150,7 +163,6 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
  * @param color[in] Color
  * @return
  *      - ESP_OK
- *      - ESP_ERR_INVALID_ARG
  */
 esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uint32_t color);
 

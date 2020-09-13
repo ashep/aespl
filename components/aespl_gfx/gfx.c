@@ -156,6 +156,22 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
     return ESP_OK;
 }
 
+esp_err_t aespl_gfx_merge_buf(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t p) {
+    if (p.x >= dst->width || p.y >= dst->height) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    for (uint16_t kx = 0; kx < src->width; kx++) {
+        for (uint16_t ky = 0; ky < src->height; ky++) {
+            uint32_t px_val = 0;
+            aespl_gfx_get_px(src, kx, ky, &px_val);
+            aespl_gfx_set_px(dst, p.x + kx, p.y + ky, px_val);
+        }
+    }
+
+    return ESP_OK;
+}
+
 esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uint32_t color) {
     uint16_t x1 = line->p1.x, x2 = line->p2.x, y1 = line->p1.y, y2 = line->p2.y;
 
@@ -174,7 +190,6 @@ esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uin
     dy /= step;
 
     uint16_t i = 0;
-    esp_err_t err;
     while (i <= step) {
         if (i == step) {
             if (x < x2) {
@@ -185,10 +200,7 @@ esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uin
             }
         }
 
-        err = aespl_gfx_set_px(buf, abs(x), abs(y), color);
-        if (err) {
-            return err;
-        }
+        aespl_gfx_set_px(buf, abs(x), abs(y), color);
 
         x += dx;
         y += dy;
