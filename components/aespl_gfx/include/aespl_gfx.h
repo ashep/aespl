@@ -5,6 +5,9 @@
  * License: MIT
  */
 
+#ifndef _AESPL_GFX_H_
+#define _AESPL_GFX_H_
+
 #include "stdint.h"
 #include "esp_err.h"
 
@@ -38,6 +41,25 @@ typedef struct {
     aespl_gfx_point_t *corners;
 } aespl_gfx_poly_t;
 
+typedef enum {
+    AESPL_GFX_FONT_WIDTH_8 = 8,
+    AESPL_GFX_FONT_WIDTH_16 = 16,
+    AESPL_GFX_FONT_WIDTH_32 = 32,
+    AESPL_GFX_FONT_WIDTH_64 = 64,
+} aespl_gfx_font_width_t;
+
+typedef struct {
+    uint8_t ascii_offset;          // char code offset relative to ASCII table
+    uint8_t size;                  // number of covered ASCII codes staring from ascii_offset
+    aespl_gfx_font_width_t width;  // number of bits per row
+    uint8_t height;                // number of rows per character
+    uint8_t spacing;               // space between characters in pixels
+    const uint8_t *content_8;      // pointer to 1-byte content
+    const uint16_t *content_16;    // pointer to 2-byte content
+    const uint32_t *content_32;    // pointer to 4-byte content
+    const uint64_t *content_64;    // pointer to 8-byte content
+} aespl_gfx_font_t;
+
 /**
  * @brief Initialize a buffer
  *
@@ -49,21 +71,21 @@ typedef struct {
  *      - ESP_OK
  *      - ESP_ERR_NO_MEM
  */
-esp_err_t aespl_gfx_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color);
+esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color);
 
 /**
  * @brief Free resources allocated by aespl_gfx_buf_init()
  *
  * @param buf Buffer
  */
-void aespl_gfx_free(aespl_gfx_buf_t *buf);
+void aespl_gfx_free_buf(aespl_gfx_buf_t *buf);
 
 /**
  * @brief Clear a buffer
  *
  * @param buf Buffer
  */
-void aespl_gfx_clear(aespl_gfx_buf_t *buf);
+void aespl_gfx_clear_buf(aespl_gfx_buf_t *buf);
 
 /**
  * @brief Print buffer's content
@@ -114,7 +136,7 @@ esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uin
  * @brief Draw a polygon
  *
  * @param buf[out]  Buffer
- * @param poly[in]  Polygon
+ * @param poly[in]  Points
  * @param color[in] Color
  * @return
  *      - ESP_OK
@@ -149,3 +171,20 @@ esp_err_t aespl_gfx_rect(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const
  */
 esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const aespl_gfx_point_t p2,
                         const aespl_gfx_point_t p3, uint32_t color);
+
+/**
+ * @brief Draw a character
+ *
+ * @param buf[out]  Buffer
+ * @param font[in]  Font
+ * @param point[in] Coordinates
+ * @param ch[in]    Character
+ * @param color[in] Color
+ * @return
+ *      - ESP_OK
+ *      - ESP_ERR_INVALID_ARG
+ */
+esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t point, char ch,
+                         uint32_t color);
+
+#endif

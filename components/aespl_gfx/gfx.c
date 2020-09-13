@@ -14,7 +14,7 @@
 #include "aespl_gfx.h"
 #include "aespl_util.h"
 
-esp_err_t aespl_gfx_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color) {
+esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_color_t color) {
     buf->width = width;
     buf->height = height;
     buf->color = color;
@@ -52,12 +52,12 @@ esp_err_t aespl_gfx_init(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, 
     }
 
     // Fill buffer with zeroes
-    aespl_gfx_clear(buf);
+    aespl_gfx_clear_buf(buf);
 
     return ESP_OK;
 }
 
-void aespl_gfx_free(aespl_gfx_buf_t *buf) {
+void aespl_gfx_free_buf(aespl_gfx_buf_t *buf) {
     // Rows
     for (uint16_t r = 0; r < buf->height; r++) {
         free(buf->content[r]);
@@ -67,7 +67,7 @@ void aespl_gfx_free(aespl_gfx_buf_t *buf) {
     free(buf->content);
 }
 
-void aespl_gfx_clear(aespl_gfx_buf_t *buf) {
+void aespl_gfx_clear_buf(aespl_gfx_buf_t *buf) {
     if (buf->content) {
         return;
     }
@@ -115,7 +115,7 @@ esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_
 
     switch (buf->color) {
         case AESPL_GFX_COLOR_MONO:
-            buf->content[y][word_n] |= 1 << (word_bits - x - 1 % word_bits);
+            buf->content[y][word_n] |= value << (word_bits - x - 1 % word_bits);
             break;
 
         case AESPL_GFX_COLOR_RGB565:
@@ -234,4 +234,69 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
                         const aespl_gfx_point_t p3, uint32_t color) {
     aespl_gfx_point_t points[3] = {p1, p2, p3};
     return aespl_gfx_poly(buf, &((aespl_gfx_poly_t){3, points}), color);
+}
+
+esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t point, char ch,
+                         uint32_t color) {
+    esp_err_t err;
+
+    // If the character is not covered by the font
+    if (ch - font->ascii_offset + 1 > font->size) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    // Offset from the beginning of the font content.
+    uint16_t offset = (ch - font->ascii_offset) * (font->height + 1);
+
+    void *ch_p = NULL;
+    uint8_t ch_cols = 0;
+    switch (font->width) {
+        case AESPL_GFX_FONT_WIDTH_8:
+            ch_p = (uint8_t *)&font->content_8[offset];
+            ch_cols = *(uint8_t *)ch_p++;
+            break;
+        case AESPL_GFX_FONT_WIDTH_16:
+            ch_p = (uint16_t *)&font->content_16[offset];
+            ch_cols = *(uint16_t *)ch_p++;
+            break;
+        case AESPL_GFX_FONT_WIDTH_32:
+            ch_p = (uint32_t *)&font->content_32[offset];
+            ch_cols = *(uint32_t *)ch_p++;
+            break;
+        case AESPL_GFX_FONT_WIDTH_64:
+            ch_p = (uint64_t *)&font->content_64[offset];
+            ch_cols = *(uint64_t *)ch_p++;
+            break;
+    }
+
+    for (uint8_t row_n = 0; row_n < font->height; row_n++) {
+        uint64_t row = 0;
+
+        switch (font->width) {
+            case AESPL_GFX_FONT_WIDTH_8:
+                row = *(uint8_t *)ch_p++;
+                break;
+            case AESPL_GFX_FONT_WIDTH_16:
+                row = *(uint16_t *)ch_p++;
+                break;
+            case AESPL_GFX_FONT_WIDTH_32:
+                row = *(uint32_t *)ch_p++;
+                break;
+            case AESPL_GFX_FONT_WIDTH_64:
+                row = *(uint64_t *)ch_p++;
+                break;
+            default:
+                return ESP_ERR_INVALID_ARG;
+        }
+
+        for (int8_t n = 0, col_n = font->width - 1; n < ch_cols; n++, col_n--) {
+            uint32_t px_color = 1 & (row >> col_n) ? color : 0;
+            err = aespl_gfx_set_px(buf, point.x + n, point.y + row_n, px_color);
+            if (err) {
+                return err;
+            }
+        }
+    }
+
+    return ESP_OK;
 }
