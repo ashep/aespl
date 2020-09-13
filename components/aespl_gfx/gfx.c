@@ -150,8 +150,8 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
     return ESP_OK;
 }
 
-esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t p) {
-    if (p.x >= dst->width || p.y >= dst->height) {
+esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t pos) {
+    if (pos.x >= dst->width || pos.y >= dst->height) {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -159,7 +159,7 @@ esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aesp
         for (uint16_t ky = 0; ky < src->height; ky++) {
             uint32_t px_val = 0;
             aespl_gfx_get_px(src, kx, ky, &px_val);
-            aespl_gfx_set_px(dst, p.x + kx, p.y + ky, px_val);
+            aespl_gfx_set_px(dst, pos.x + kx, pos.y + ky, px_val);
         }
     }
 

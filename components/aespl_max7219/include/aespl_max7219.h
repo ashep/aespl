@@ -1,6 +1,6 @@
 /**
- * MAX7219 driver for ESP8266
- * 
+ * MAX7219 Driver for ESP8266
+ *
  * Author: Alexander Shepetko <a@shepetko.com>
  * License: MIT
  */
@@ -106,7 +106,7 @@ typedef struct {
 
 /**
  * @brief Initialize an MCU to work with MAX7219
- * 
+ *
  * @param cfg Configuration
  * @return
  *     - ESP_OK Success
@@ -116,7 +116,7 @@ esp_err_t aespl_max7219_init(const aespl_max7219_config_t *cfg);
 
 /**
  * @brief Latch sent data into device's registers
- * 
+ *
  * @param cfg Configuration
  * @return
  *     - ESP_OK Success
@@ -126,7 +126,7 @@ esp_err_t aespl_max7219_latch(const aespl_max7219_config_t *cfg);
 
 /**
  * @brief Send a command to single device
- * 
+ *
  * @param cfg    Configuration
  * @param addr   Address
  * @param data   Data
@@ -139,15 +139,23 @@ esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_ad
 
 /**
  * @brief Send a command to all devices
- * 
+ *
  * @param cfg    Configuration
  * @param addr   Address
  * @param data   Data
- * @param latch  Latch
  * @return
  *     - ESP_OK Success
  *     - ESP_ERR_INVALID_ARG GPIO number error
  */
 esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data);
+
+/**
+ * @brief Clear digits of all devices
+ *
+ * @param cfg    Configuration
+ * @return
+ *     - ESP_ERR_INVALID_ARG GPIO number error
+ */
+esp_err_t aespl_max7219_clear(const aespl_max7219_config_t *cfg);
 
 #endif

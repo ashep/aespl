@@ -1,6 +1,6 @@
 /**
- * MAX7219 driver for ESP8266
- * 
+ * MAX7219 Driver for ESP8266
+ *
  * Author: Alexander Shepetko <a@shepetko.com>
  * License: MIT
  */
@@ -42,16 +42,22 @@ esp_err_t aespl_max7219_init(const aespl_max7219_config_t *cfg) {
     err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_INTENSITY, AESPL_MAX7219_INTENSITY_MIN);
     if (err) {
         return err;
-    }    
+    }
 
     // Disable test mode
     err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_TEST, AESPL_MAX7219_TEST_MODE_DISABLE);
     if (err) {
         return err;
-    }        
+    }
 
     // Power on
     err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_POWER, AESPL_MAX7219_POWER_ON);
+    if (err) {
+        return err;
+    }
+
+    // Clear
+    err = aespl_max7219_clear(cfg);
     if (err) {
         return err;
     }
@@ -120,4 +126,16 @@ esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max721
     }
 
     return aespl_max7219_latch(cfg);
+}
+
+esp_err_t aespl_max7219_clear(const aespl_max7219_config_t *cfg) {
+    esp_err_t err;
+    for (uint8_t i = AESPL_MAX7219_ADDR_DIGIT_0; i <= AESPL_MAX7219_ADDR_DIGIT_7; i++) {
+        err = aespl_max7219_send_all(cfg, i, 0);
+        if (err) {
+            return err;
+        }
+    }
+
+    return ESP_OK;
 }

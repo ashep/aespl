@@ -1,5 +1,5 @@
 /**
- * MAX7219 matrix driver for ESP8266
+ * MAX7219 Matrix Driver for ESP8266
  *
  * Author: Alexander Shepetko <a@shepetko.com>
  * License: MIT

@@ -1,5 +1,5 @@
 /**
- * AESPL Graphics
+ * Graphics Library for ESP8266
  *
  * Author: Alexander Shepetko <a@shepetko.com>
  * License: MIT
@@ -24,9 +24,9 @@ typedef enum {
  * Common colors
  */
 typedef enum {
-    AESPL_COLOR_MONO_0,
+    AESPL_C_MONO_0,
     AESPL_C_MONO_1,
-};
+} aespl_gfx_color_mono_t;
 
 /**
  * Graphics buffer
@@ -93,10 +93,10 @@ typedef struct {
 /**
  * @brief Initialize a buffer
  *
- * @param buf[out]   Buffer
- * @param width[in]  Width in pixels
- * @param height[in] Height in pixels
- * @param color[in]  Color mode
+ * @param buf    Buffer
+ * @param width  Width in pixels
+ * @param height Height in pixels
+ * @param color  Color mode
  * @return
  *      - ESP_OK
  *      - ESP_ERR_NO_MEM
@@ -104,7 +104,7 @@ typedef struct {
 esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_cmode_t color);
 
 /**
- * @brief Free resources allocated by aespl_gfx_buf_init()
+ * @brief Free resources allocated by aespl_gfx_init_buf()
  *
  * @param buf Buffer
  */
@@ -155,17 +155,17 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
  *
  * @param dst Target buffer
  * @param src Source buffer
- * @param p   Target buffer coordinates
+ * @param pos Target buffer coordinates
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t p);
+esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t pos);
 
 /**
  * @brief Move buffer
  *
- * @param buf   Buffer
+ * @param buf     Buffer
  * @param rel_pos Relative position
  * @return
  *      - ESP_OK
@@ -230,7 +230,7 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
  *
  * @param buf      Buffer
  * @param font     Font
- * @param point    Coordinates
+ * @param pos    Coordinates
  * @param ch       Character
  * @param color    Color
  * @param ch_width Drawn character width
@@ -241,6 +241,19 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
 esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, char ch,
                          uint32_t color, uint8_t *ch_width);
 
+/**
+ * @brief Draw a string
+ *
+ * @param buf      Buffer
+ * @param font     Font
+ * @param pos    Coordinates
+ * @param ch       Character
+ * @param color    Color
+ * @param ch_width Drawn character width
+ * @return
+ *      - ESP_OK
+ *      - ESP_ERR_INVALID_ARG
+ */
 esp_err_t aespl_gfx_puts(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t *pos, char *s,
                          uint32_t color, uint8_t space);
 
