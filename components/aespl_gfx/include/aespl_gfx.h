@@ -36,8 +36,8 @@ typedef struct {
  * Point coordinates
  */
 typedef struct {
-    uint16_t x;
-    uint16_t y;
+    int16_t x;
+    int16_t y;
 } aespl_gfx_point_t;
 
 /**
@@ -107,7 +107,7 @@ void aespl_gfx_free_buf(aespl_gfx_buf_t *buf);
  *
  * @param buf Buffer
  */
-void aespl_gfx_clear_buf(aespl_gfx_buf_t *buf);
+void aespl_gfx_clear(aespl_gfx_buf_t *buf);
 
 /**
  * @brief Print buffer's content
@@ -119,48 +119,59 @@ void aespl_gfx_print_buf(const aespl_gfx_buf_t *buf);
 /**
  * @brief Set a pixel
  *
- * @param buf[out]  Buffer
- * @param x[in]     X position
- * @param y[in]     Y position
- * @param value[in] Color value
+ * @param buf   Buffer
+ * @param x     X position
+ * @param y     Y position
+ * @param color Color value
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value);
+esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t color);
 
 /**
  * @brief Get a pixel
  *
- * @param buf[in]    Buffer
- * @param x[in]      X position
- * @param y[in]      Y position
- * @param value[out] Color value
+ * @param buf   Buffer
+ * @param x     X position
+ * @param y     Y position
+ * @param color Color value
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *value);
-
+esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *color);
 
 /**
  * @brief Merge the `src` buffer into the `dst` buffer
  *
- * @param dst[out] Target buffer
- * @param src[in]  Source buffer
- * @param p[in]    Target buffer coordinates
+ * @param dst Target buffer
+ * @param src Source buffer
+ * @param p   Target buffer coordinates
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_merge_buf(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t p);
+esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t p);
+
+/**
+ * @brief Move buffer
+ *
+ * @param buf   Buffer
+ * @param rel_pos Relative position
+ * @return
+ *      - ESP_OK
+ *      - ESP_ERR_NO_MEM
+ *      - ESP_ERR_INVALID_ARG
+ */
+esp_err_t aespl_gfx_move(aespl_gfx_buf_t *buf, aespl_gfx_point_t rel_pos);
 
 /**
  * @brief Draw a line
  *
- * @param buf[out]  Buffer
- * @param line[in]  Line
- * @param color[in] Color
+ * @param buf   Buffer
+ * @param line  Line
+ * @param color Color
  * @return
  *      - ESP_OK
  */
@@ -169,9 +180,9 @@ esp_err_t aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uin
 /**
  * @brief Draw a polygon
  *
- * @param buf[out]  Buffer
- * @param poly[in]  Points
- * @param color[in] Color
+ * @param buf   Buffer
+ * @param poly  Points
+ * @param color Color
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
@@ -181,10 +192,10 @@ esp_err_t aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uin
 /**
  * @brief Draw a rectangle
  *
- * @param buf[out]  Buffer
- * @param p1[in]    Top left point
- * @param p2[in]    Bottom right point
- * @param color[in] Color
+ * @param buf   Buffer
+ * @param p1    Top left point
+ * @param p2    Bottom right point
+ * @param color Color
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
@@ -194,11 +205,11 @@ esp_err_t aespl_gfx_rect(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const
 /**
  * @brief Draw a triangle
  *
- * @param buf[out]  Buffer
- * @param p1[in]    Point 1
- * @param p2[in]    Point 2
- * @param p3[in]    Point 3
- * @param color[in] Color
+ * @param buf   Buffer
+ * @param p1    Point 1
+ * @param p2    Point 2
+ * @param p3    Point 3
+ * @param color Color
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
@@ -209,16 +220,16 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
 /**
  * @brief Draw a character
  *
- * @param buf[out]  Buffer
- * @param font[in]  Font
- * @param point[in] Coordinates
- * @param ch[in]    Character
- * @param color[in] Color
+ * @param buf   Buffer
+ * @param font  Font
+ * @param point Coordinates
+ * @param ch    Character
+ * @param color Color
  * @return
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t point, char ch,
+esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, char ch,
                          uint32_t color);
 
 #endif

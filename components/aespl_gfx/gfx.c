@@ -6,8 +6,9 @@
  */
 
 #include "stdlib.h"
+#include "stdbool.h"
 #include "stdint.h"
-#include "strings.h"
+#include "string.h"
 #include "math.h"
 #include "esp_err.h"
 #include "esp_err.h"
@@ -52,7 +53,7 @@ esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t heig
     }
 
     // Fill buffer with zeroes
-    aespl_gfx_clear_buf(buf);
+    aespl_gfx_clear(buf);
 
     return ESP_OK;
 }
@@ -67,16 +68,9 @@ void aespl_gfx_free_buf(aespl_gfx_buf_t *buf) {
     free(buf->content);
 }
 
-void aespl_gfx_clear_buf(aespl_gfx_buf_t *buf) {
-    if (buf->content) {
-        return;
-    }
-
+void aespl_gfx_clear(aespl_gfx_buf_t *buf) {
     for (uint16_t r = 0; r < buf->height; r++) {
-        if (!buf->content[r]) {
-            return;
-        }
-        bzero(buf->content[r], buf->wpr * sizeof(**buf->content));
+        memset(buf->content[r], 0, buf->wpr * sizeof(**buf->content));
     }
 }
 
@@ -156,7 +150,7 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
     return ESP_OK;
 }
 
-esp_err_t aespl_gfx_merge_buf(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t p) {
+esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t p) {
     if (p.x >= dst->width || p.y >= dst->height) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -168,6 +162,33 @@ esp_err_t aespl_gfx_merge_buf(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, 
             aespl_gfx_set_px(dst, p.x + kx, p.y + ky, px_val);
         }
     }
+
+    return ESP_OK;
+}
+
+esp_err_t aespl_gfx_move(aespl_gfx_buf_t *buf, aespl_gfx_point_t rel_p) {
+    esp_err_t err;
+    aespl_gfx_buf_t tmp_buf;
+    aespl_gfx_point_t p;
+
+    err = aespl_gfx_init_buf(&tmp_buf, buf->width, buf->height, buf->color);
+    if (err) {
+        return err;
+    }
+
+    err = aespl_gfx_merge(&tmp_buf, buf, rel_p);
+    if (err) {
+        return err;
+    }
+
+    aespl_gfx_clear(buf);
+
+    err = aespl_gfx_merge(buf, &tmp_buf, (aespl_gfx_point_t){0, 0});
+    if (err) {
+        return err;
+    }
+
+    aespl_gfx_free_buf(&tmp_buf);
 
     return ESP_OK;
 }
@@ -248,7 +269,7 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
     return aespl_gfx_poly(buf, &((aespl_gfx_poly_t){3, points}), color);
 }
 
-esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t point, char ch,
+esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, char ch,
                          uint32_t color) {
     esp_err_t err;
 
@@ -303,7 +324,7 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
 
         for (int8_t n = 0, col_n = font->width - 1; n < ch_cols; n++, col_n--) {
             uint32_t px_color = 1 & (row >> col_n) ? color : 0;
-            err = aespl_gfx_set_px(buf, point.x + n, point.y + row_n, px_color);
+            err = aespl_gfx_set_px(buf, pos.x + n, pos.y + row_n, px_color);
             if (err) {
                 return err;
             }
