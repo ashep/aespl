@@ -68,13 +68,37 @@ void aespl_gfx_free_buf(aespl_gfx_buf_t *buf) {
     free(buf->content);
 }
 
+esp_err_t aespl_gfx_init_buf_array(aespl_gfx_buf_array_t *buf_arr, uint8_t length,
+                                   uint16_t width, uint16_t height, aespl_gfx_cmode_t color) {
+    buf_arr->length = length;
+    buf_arr->color = color;
+    buf_arr->buffers = calloc(length, sizeof(aespl_gfx_buf_t));
+
+    aespl_gfx_buf_t *p = buf_arr->buffers;
+
+    for (uint8_t i = 0; i < length; i++) {
+        aespl_gfx_init_buf(p++, width, height, color);
+    }
+
+    return ESP_OK;
+}
+
+void aespl_gfx_free_buf_array(aespl_gfx_buf_array_t *buf_arr) {
+    aespl_gfx_buf_t *p = buf_arr->buffers;
+    for (uint8_t i = 0; i < buf_arr->length; i++) {
+        aespl_gfx_free_buf(p++);
+    }
+
+    free(buf_arr->buffers);
+}
+
 void aespl_gfx_clear(aespl_gfx_buf_t *buf) {
     for (uint16_t r = 0; r < buf->height; r++) {
         memset(buf->content[r], 0, buf->wpr * sizeof(**buf->content));
     }
 }
 
-void aespl_gfx_print_buf(const aespl_gfx_buf_t *buf) {
+void aespl_gfx_print(const aespl_gfx_buf_t *buf) {
     for (uint16_t r = 0; r < buf->height; r++) {
         for (uint16_t w = buf->wpr; w > 0; w--) {
             if (w == buf->wpr) {
@@ -150,16 +174,44 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
     return ESP_OK;
 }
 
-esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t pos) {
-    if (pos.x >= dst->width || pos.y >= dst->height) {
+esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src,
+                          aespl_gfx_point_t dst_pos, aespl_gfx_point_t src_pos) {
+    if (src_pos.x >= src->width || src_pos.y >= src->height || dst_pos.x >= dst->width || dst_pos.y >= dst->height) {
         return ESP_ERR_INVALID_ARG;
     }
 
-    for (uint16_t kx = 0; kx < src->width; kx++) {
-        for (uint16_t ky = 0; ky < src->height; ky++) {
-            uint32_t px_val = 0;
-            aespl_gfx_get_px(src, kx, ky, &px_val);
-            aespl_gfx_set_px(dst, pos.x + kx, pos.y + ky, px_val);
+    uint32_t color = 0;
+    int16_t dst_x = dst_pos.x;
+    for (int16_t src_x = src_pos.x; src_x < src->width && dst_x < dst->width; src_x++, dst_x++) {
+        int16_t dst_y = dst_pos.y;
+        for (int16_t src_y = src_pos.y; src_y < src->height && dst_y < dst->height; src_y++, dst_y++) {
+            aespl_gfx_get_px(src, src_x, src_y, &color);
+            aespl_gfx_set_px(dst, dst_x, dst_y, color);
+        }
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t aespl_gfx_split(aespl_gfx_buf_array_t *dst, const aespl_gfx_buf_t *src, uint8_t num_x, uint8_t num_y) {
+    esp_err_t err;
+    uint16_t dst_width = src->width / num_x;
+    uint16_t dst_height = src->height / num_y;
+
+    err = aespl_gfx_init_buf_array(dst, num_x * num_y, dst_width, dst_height, src->color);
+    if (err) {
+        return err;
+    }
+
+    aespl_gfx_buf_t *dst_s_buf = dst->buffers;
+    for (uint8_t n_y = 0; n_y < num_y; n_y++) {
+        for (uint8_t n_x = 0; n_x < num_x; n_x++) {
+            aespl_gfx_point_t src_pos = {n_x * dst_width, n_y * dst_height};
+            err = aespl_gfx_merge(dst_s_buf, src, (aespl_gfx_point_t){0, 0}, src_pos);
+            if (err) {
+                return err;
+            }
+            dst_s_buf++;
         }
     }
 
@@ -175,14 +227,14 @@ esp_err_t aespl_gfx_move(aespl_gfx_buf_t *buf, aespl_gfx_point_t rel_p) {
         return err;
     }
 
-    err = aespl_gfx_merge(&tmp_buf, buf, rel_p);
+    err = aespl_gfx_merge(&tmp_buf, buf, rel_p, (aespl_gfx_point_t){0, 0});
     if (err) {
         return err;
     }
 
     aespl_gfx_clear(buf);
 
-    err = aespl_gfx_merge(buf, &tmp_buf, (aespl_gfx_point_t){0, 0});
+    err = aespl_gfx_merge(buf, &tmp_buf, (aespl_gfx_point_t){0, 0}, (aespl_gfx_point_t){0, 0});
     if (err) {
         return err;
     }
@@ -272,7 +324,7 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
                          uint32_t color, uint8_t *ch_width) {
     esp_err_t err;
 
-    // If the character is not covered by the font
+    // If the character is not covered y the font
     if (ch - font->ascii_offset + 1 > font->size) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -332,7 +384,7 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
     return ESP_OK;
 }
 
-esp_err_t aespl_gfx_puts(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t *pos, char *s,
+esp_err_t aespl_gfx_puts(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t *pos, const char *s,
                          uint32_t color, uint8_t space) {
     esp_err_t err;
     uint8_t ch_width = 0;
