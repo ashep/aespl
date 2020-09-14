@@ -153,7 +153,7 @@ void aespl_gfx_clear(aespl_gfx_buf_t *buf);
  *
  * @param buf Buffer
  */
-void aespl_gfx_print(const aespl_gfx_buf_t *buf);
+void aespl_gfx_dump(const aespl_gfx_buf_t *buf);
 
 /**
  * @brief Set a pixel's color value

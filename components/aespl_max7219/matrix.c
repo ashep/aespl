@@ -32,11 +32,6 @@ esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, ae
     for (uint8_t row_n = 1; row_n <= 8; row_n++) {
         for (int8_t n = b_arr.length - 1; n >= 0; n--) {
             uint8_t row_data = *(b_arr.buffers[n].content[row_n - 1]) >> 24;
-
-            // printf("buf %d, row %d\n", n, row_n);
-            // print_bin(row_data, 8);
-            // printf("\n");
-
             err = aespl_max7219_send(cfg->max7219, row_n, row_data, false);
             if (err) {
                 return err;

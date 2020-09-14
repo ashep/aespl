@@ -16,9 +16,9 @@
  * MAX7219 matrix configuration structure
  */
 typedef struct {
-    const aespl_max7219_config_t *max7219;
-    uint8_t disp_x; // number of display by X axis
-    uint8_t disp_y; // number of display by Y axis
+    const aespl_max7219_config_t *max7219;  // MAX7219 configuration
+    uint8_t disp_x;                         // number of display by X axis
+    uint8_t disp_y;                         // number of display by Y axis
 } aespl_max7219_matrix_config_t;
 
 /**

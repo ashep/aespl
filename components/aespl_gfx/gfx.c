@@ -98,7 +98,7 @@ void aespl_gfx_clear(aespl_gfx_buf_t *buf) {
     }
 }
 
-void aespl_gfx_print(const aespl_gfx_buf_t *buf) {
+void aespl_gfx_dump(const aespl_gfx_buf_t *buf) {
     for (uint16_t r = 0; r < buf->height; r++) {
         for (uint16_t w = buf->wpr; w > 0; w--) {
             if (w == buf->wpr) {
