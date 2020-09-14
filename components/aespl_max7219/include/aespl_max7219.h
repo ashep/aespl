@@ -109,18 +109,19 @@ typedef struct {
  *
  * @param cfg Configuration
  * @return
- *     - ESP_OK Success
- *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_OK
+ *     - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_max7219_init(const aespl_max7219_config_t *cfg);
+esp_err_t aespl_max7219_init(aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_num_t clk, gpio_num_t data,
+                             uint8_t n_displays, aespl_max7219_decode_mode_t decode);
 
 /**
  * @brief Latch sent data into device's registers
  *
  * @param cfg Configuration
  * @return
- *     - ESP_OK Success
- *     - ESP_ERR_INVALID_ARG GPIO number error
+ *     - ESP_OK
+ *     - ESP_ERR_INVALID_ARG
  */
 esp_err_t aespl_max7219_latch(const aespl_max7219_config_t *cfg);
 
@@ -132,8 +133,8 @@ esp_err_t aespl_max7219_latch(const aespl_max7219_config_t *cfg);
  * @param data   Data
  * @param latch  Latch
  * @return
- *     - ESP_OK Success
- *     - ESP_ERR_INVALID_ARG GPIO number error
+ *     - ESP_OK
+ *     - ESP_ERR_INVALID_ARG
  */
 esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data, bool latch);
 
@@ -144,8 +145,8 @@ esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_ad
  * @param addr   Address
  * @param data   Data
  * @return
- *     - ESP_OK Success
- *     - ESP_ERR_INVALID_ARG GPIO number error
+ *     - ESP_OK
+ *     - ESP_ERR_INVALID_ARG
  */
 esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data);
 
@@ -154,7 +155,8 @@ esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max721
  *
  * @param cfg    Configuration
  * @return
- *     - ESP_ERR_INVALID_ARG GPIO number error
+ *     - ESP_OK
+ *     - ESP_ERR_INVALID_ARG
  */
 esp_err_t aespl_max7219_clear(const aespl_max7219_config_t *cfg);
 

@@ -16,8 +16,15 @@
 #include "driver/gpio.h"
 #include "aespl_max7219.h"
 
-esp_err_t aespl_max7219_init(const aespl_max7219_config_t *cfg) {
+esp_err_t aespl_max7219_init(aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_num_t clk, gpio_num_t data,
+                             uint8_t n_displays, aespl_max7219_decode_mode_t decode) {
     esp_err_t err;
+
+    cfg->pin_cs = cs;
+    cfg->pin_clk = clk;
+    cfg->pin_data = data;
+    cfg->n_displays = n_displays;
+    cfg->decode = decode;
 
     gpio_config_t gpio_cfg = {
         .pin_bit_mask = BIT(cfg->pin_cs) | BIT(cfg->pin_clk) | BIT(cfg->pin_data),
@@ -34,6 +41,12 @@ esp_err_t aespl_max7219_init(const aespl_max7219_config_t *cfg) {
 
     // Set decode mode
     err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_DECODE_MODE, cfg->decode);
+    if (err) {
+        return err;
+    }
+
+    // Set scan limit to all digits
+    err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_SCAN_LIMIT, AESPL_MAX7219_SCAN_LIMIT_8);
     if (err) {
         return err;
     }

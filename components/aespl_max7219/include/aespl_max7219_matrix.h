@@ -10,19 +10,36 @@
 
 #include "driver/gpio.h"
 #include "aespl_max7219.h"
+#include "aespl_gfx.h"
 
 /**
  * MAX7219 matrix configuration structure
  */
 typedef struct {
-    aespl_max7219_config_t max7219cfg;
-    uint8_t displays_x;
-    uint8_t displays_y;
+    const aespl_max7219_config_t *max7219;
+    uint8_t disp_x; // number of display by X axis
+    uint8_t disp_y; // number of display by Y axis
 } aespl_max7219_matrix_config_t;
 
 /**
- * Initialize MAX7219 matrix device(s)
+ * @brief Initialize MAX7219 matrix device(s)
+ *
+ * @param cfg      Matrix configuration
+ * @param m7219cfg MAX7219 configuration
+ * @param disp_x   Number of display by X axis
+ * @param disp_y   Number of display by Y axis
  */
-esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg);
+esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const aespl_max7219_config_t *m7219cfg,
+                                    uint8_t disp_x, uint8_t disp_y);
+
+/**
+ * @brief Draw a graphics buffer
+ *
+ * - buf->width must equal 8*cfg->displays_x
+ * - buf->height must equal 8*cfg->displays_y
+ *
+ * @param cfg Configuration
+ */
+esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, aespl_gfx_buf_t *buf);
 
 #endif
