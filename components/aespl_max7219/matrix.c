@@ -10,7 +10,7 @@
 #include "aespl_max7219.h"
 #include "aespl_max7219_matrix.h"
 #include "aespl_gfx.h"
-#include "aespl_util.h"
+#include "aespl_common.h"
 
 esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const aespl_max7219_config_t *m7219cfg,
                                     uint8_t disp_x, uint8_t disp_y) {
