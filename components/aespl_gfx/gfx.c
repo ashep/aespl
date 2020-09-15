@@ -13,7 +13,7 @@
 #include "esp_err.h"
 #include "esp_err.h"
 #include "aespl_gfx.h"
-#include "aespl_util.h"
+#include "aespl_common.h"
 
 esp_err_t aespl_gfx_init_buf(aespl_gfx_buf_t *buf, uint16_t width, uint16_t height, aespl_gfx_cmode_t color) {
     buf->width = width;
@@ -123,9 +123,11 @@ void aespl_gfx_dump(const aespl_gfx_buf_t *buf) {
     }
 }
 
-esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t value) {
-    if (x >= buf->width || y >= buf->height) {
-        return ESP_ERR_INVALID_ARG;
+esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t value) {
+    // TODO: make negative/operflow values acceptable by "circling",
+    // i. e. for 16-pixel wide buffer x == -1 becomes 15, and x == 16 becomes 1.
+    if (x < 0 || x >= buf->width || y < 0 || y >= buf->height) {
+        return AESPL_ERR_GFX_OOB;
     }
 
     size_t word_bits = sizeof(**buf->content) * 8;
@@ -148,9 +150,11 @@ esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_
     return ESP_OK;
 }
 
-esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *value) {
-    if (x >= buf->width || y >= buf->height) {
-        return ESP_ERR_INVALID_ARG;
+esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t *value) {
+    // TODO: make negative/operflow values acceptable by "circling",
+    // i. e. for 16-pixel wide buffer x == -1 becomes 15, and x == 16 becomes 1.
+    if (x < 0 || x >= buf->width || y < 0 || y >= buf->height) {
+        return AESPL_ERR_GFX_OOB;
     }
 
     size_t word_bits = sizeof(**buf->content) * 8;
@@ -177,16 +181,28 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
 esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src,
                           aespl_gfx_point_t dst_pos, aespl_gfx_point_t src_pos) {
     if (src_pos.x >= src->width || src_pos.y >= src->height || dst_pos.x >= dst->width || dst_pos.y >= dst->height) {
-        return ESP_ERR_INVALID_ARG;
+        return AESPL_ERR_GFX_OOB;
     }
 
+    esp_err_t err;
     uint32_t color = 0;
     int16_t dst_x = dst_pos.x;
     for (int16_t src_x = src_pos.x; src_x < src->width && dst_x < dst->width; src_x++, dst_x++) {
         int16_t dst_y = dst_pos.y;
         for (int16_t src_y = src_pos.y; src_y < src->height && dst_y < dst->height; src_y++, dst_y++) {
-            aespl_gfx_get_px(src, src_x, src_y, &color);
-            aespl_gfx_set_px(dst, dst_x, dst_y, color);
+            err = aespl_gfx_get_px(src, src_x, src_y, &color);
+            if (err == AESPL_ERR_GFX_OOB) {
+                continue;
+            } else if (err != ESP_OK) {
+                return err;
+            }
+
+            err = aespl_gfx_set_px(dst, dst_x, dst_y, color);
+            if (err == AESPL_ERR_GFX_OOB) {
+                continue;
+            } else if (err != ESP_OK) {
+                return err;
+            }
         }
     }
 
@@ -320,12 +336,12 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
     return aespl_gfx_poly(buf, &((aespl_gfx_poly_t){3, points}), color);
 }
 
-esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, char ch,
+esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, uint8_t ch,
                          uint32_t color, uint8_t *ch_width) {
     esp_err_t err;
 
     // If the character is not covered y the font
-    if (ch - font->ascii_offset + 1 > font->size) {
+    if (ch - font->ascii_offset + 1 > font->length) {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -375,7 +391,9 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
         for (int8_t n = 0, col_n = font->width - 1; n < *ch_width; n++, col_n--) {
             uint32_t px_color = 1 & (row >> col_n) ? color : 0;
             err = aespl_gfx_set_px(buf, pos.x + n, pos.y + row_n, px_color);
-            if (err) {
+            if (err == AESPL_ERR_GFX_OOB) {
+                continue;
+            } else if (err != ESP_OK) {
                 return err;
             }
         }

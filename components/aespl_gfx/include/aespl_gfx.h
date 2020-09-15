@@ -10,6 +10,10 @@
 
 #include "stdint.h"
 #include "esp_err.h"
+#include "aespl_common.h"
+
+#define AESPL_ERR_GFX_BASE (AESPL_ERR_BASE + 0x0100)
+#define AESPL_ERR_GFX_OOB (AESPL_ERR_GFX_BASE + 0x1)  // out of boundaries
 
 /**
  * Color modes
@@ -44,8 +48,8 @@ typedef struct {
  * Array of buffers
  */
 typedef struct {
-    uint16_t length;            // number of buffers
-    aespl_gfx_cmode_t color;    // color mode
+    uint16_t length;           // number of buffers
+    aespl_gfx_cmode_t color;   // color mode
     aespl_gfx_buf_t *buffers;  // buffers
 } aespl_gfx_buf_array_t;
 
@@ -88,7 +92,7 @@ typedef enum {
  */
 typedef struct {
     uint8_t ascii_offset;          // char code offset relative to ASCII table
-    uint8_t size;                  // number of covered ASCII codes staring from ascii_offset
+    uint8_t length;                  // number of covered ASCII codes staring from ascii_offset
     aespl_gfx_font_width_t width;  // number of bits per row
     uint8_t height;                // number of rows per character
     union {
@@ -164,9 +168,9 @@ void aespl_gfx_dump(const aespl_gfx_buf_t *buf);
  * @param color Color value
  * @return
  *      - ESP_OK
- *      - ESP_ERR_INVALID_ARG
+ *      - AESPL_ERR_GFX_OOB
  */
-esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t color);
+esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t color);
 
 /**
  * @brief Get a pixel's color value
@@ -177,9 +181,9 @@ esp_err_t aespl_gfx_set_px(aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_
  * @param color Color value
  * @return
  *      - ESP_OK
- *      - ESP_ERR_INVALID_ARG
+ *      - AESPL_ERR_GFX_OOB
  */
-esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, uint32_t *color);
+esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t *color);
 
 /**
  * @brief Merge the `src` buffer into the `dst` buffer
@@ -190,13 +194,21 @@ esp_err_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, uint16_t x, uint16_t y, u
  * @param src_pos Coordinates on the source buffer
  * @return
  *      - ESP_OK
- *      - ESP_ERR_INVALID_ARG
+ *      - AESPL_ERR_GFX_OOB
  */
 esp_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src,
                           aespl_gfx_point_t dst_pos, aespl_gfx_point_t src_pos);
 
 /**
  * @brief Split a buffer
+ *
+ * @param dst   Destination array of buffers
+ * @param src   Source buffer
+ * @param num_x X parts
+ * @param num_y Y parts
+ * @return
+ *      - ESP_OK
+ *      - AESPL_ERR_GFX_OOB
  */
 esp_err_t aespl_gfx_split(aespl_gfx_buf_array_t *dst, const aespl_gfx_buf_t *src, uint8_t num_x, uint8_t num_y);
 
@@ -278,7 +290,7 @@ esp_err_t aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const 
  *      - ESP_OK
  *      - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, char ch,
+esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, uint8_t ch,
                          uint32_t color, uint8_t *ch_width);
 
 /**
