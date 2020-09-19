@@ -5,7 +5,8 @@
             "cStandard": "${default}",
             "intelliSenseMode": "gcc-x86",
             "defines": [
-                "CONFIG_LOG_DEFAULT_LEVEL"
+                "CONFIG_LOG_DEFAULT_LEVEL",
+                "CONFIG_FREERTOS_HZ"
             ],
             "includePath": [
                 "${IDF_PATH}/components/json/cJSON",
