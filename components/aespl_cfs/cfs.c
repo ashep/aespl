@@ -1,5 +1,12 @@
+/**
+ * AESPL Common Functions Service
+ *
+ * Author: Alexander Shepetko <a@shepetko.com>
+ * License: MIT
+ */
+
 #include <string.h>
-#include "aespl_http_server.h"
+#include "aespl_httpd.h"
 #include "aespl_cfs_httpd.h"
 
 esp_err_t aespl_cfs_init(const char *httpd_prefix) {
