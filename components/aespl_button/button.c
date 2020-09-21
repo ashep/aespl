@@ -20,13 +20,13 @@
 #include "aespl_button.h"
 
 static void gpio_l_press_callback(TimerHandle_t t) {
-    aespl_button_t *cfg = (aespl_button_t *)pvTimerGetTimerID(t);
+    aespl_button_t *btn = (aespl_button_t *)pvTimerGetTimerID(t);
 
     // Decrease timer period
     xTimerChangePeriodFromISR(t, pdMS_TO_TICKS(AESPL_BUTTON_L_PRESS_REPEAT_MS), NULL);
 
-    cfg->is_l_press = true;
-    cfg->on_l_press();
+    btn->is_l_press = true;
+    btn->on_l_press(btn->pin);
 }
 
 static void IRAM_ATTR gpio_isr(void *button) {
@@ -51,7 +51,7 @@ static void IRAM_ATTR gpio_isr(void *button) {
     if (is_pressed) {
         // Call press hook
         if (btn->on_press) {
-            btn->on_press();
+            btn->on_press(btn->pin);
         }
 
         // Start long press timer
@@ -62,7 +62,7 @@ static void IRAM_ATTR gpio_isr(void *button) {
     } else {
         // Call release hook
         if (btn->on_release) {
-            btn->on_release();
+            btn->on_release(btn->pin);
         }
 
         // Button is not under long press anymore
