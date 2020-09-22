@@ -7,11 +7,8 @@
 
 static char *log_tag = "aespl_http_server";
 
-static httpd_config_t *server_config = NULL;
-static httpd_handle_t server = NULL;
-
-esp_err_t aespl_httpd_handle(httpd_method_t method, const char *uri, esp_err_t (*handler)(httpd_req_t *r)) {
-    if (!server) {
+esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const char *uri, esp_err_t (*handler)(httpd_req_t *r)) {
+    if (!server->server) {
         ESP_LOGE(log_tag, "server is not started");
         return AESPL_ERR_HTTPD_NOT_STARTED;
     }
@@ -22,7 +19,7 @@ esp_err_t aespl_httpd_handle(httpd_method_t method, const char *uri, esp_err_t (
         .handler = handler,
     };
 
-    esp_err_t err = httpd_register_uri_handler(server, &h);
+    esp_err_t err = httpd_register_uri_handler(server->server, &h);
     if (err == ESP_OK) {
         ESP_LOGI(log_tag, "URI handler registered: %s %s", http_method_str(method), uri);
     } else {
@@ -33,11 +30,6 @@ esp_err_t aespl_httpd_handle(httpd_method_t method, const char *uri, esp_err_t (
 }
 
 esp_err_t aespl_httpd_send(httpd_req_t *req, const char *status, const char *body) {
-    if (!server) {
-        ESP_LOGE(log_tag, "server is not started");
-        return AESPL_ERR_HTTPD_NOT_STARTED;
-    }
-
     esp_err_t err = httpd_resp_send(req, body, strlen(body));
 
     if (err != ESP_OK) {
@@ -51,11 +43,6 @@ esp_err_t aespl_httpd_send(httpd_req_t *req, const char *status, const char *bod
 }
 
 esp_err_t aespl_httpd_send_json(httpd_req_t *req, const char *status, cJSON *json) {
-    if (!server) {
-        ESP_LOGE(log_tag, "server is not started");
-        return AESPL_ERR_HTTPD_NOT_STARTED;
-    }
-
     esp_err_t err = httpd_resp_set_type(req, HTTPD_TYPE_JSON);
     if (err != ESP_OK) {
         ESP_LOGE(log_tag, "unable to set response content type");
@@ -76,39 +63,31 @@ esp_err_t aespl_httpd_send_json(httpd_req_t *req, const char *status, cJSON *jso
     return err;
 }
 
-esp_err_t aespl_httpd_stop() {
-    if (!server) {
-        ESP_LOGE(log_tag, "server is not started");
-        return AESPL_ERR_HTTPD_NOT_STARTED;
-    }
-
-    esp_err_t err = httpd_stop(server);
+esp_err_t aespl_httpd_stop(aespl_httpd_t *server) {
+    esp_err_t err = httpd_stop(server->server);
     if (err) {
         return err;
     }
 
-    server = NULL;
-    server_config = NULL;
+    server->server = NULL;
+    server->config = NULL;
 
     return ESP_OK;
 }
 
-esp_err_t aespl_httpd_start(const char *app_name, httpd_config_t *config) {
-    if (server) {
-        ESP_LOGE(log_tag, "server is already started");
-        return AESPL_ERR_HTTPD_ALREADY_STARTED;
-    }
+esp_err_t aespl_httpd_start(aespl_httpd_t *server, const httpd_config_t *config) {
+    // memset(server, 0, sizeof(*server));
 
     if (!config) {
         httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
-        config = &cfg;
+        server->config = &cfg;
+    } else {
+        server->config = config;
     }
 
-    server_config = config;
-
-    esp_err_t err = httpd_start(&server, server_config);
+    esp_err_t err = httpd_start(&server->server, server->config);
     if (err == ESP_OK) {
-        ESP_LOGI(log_tag, "server started on port %d", server_config->server_port);
+        ESP_LOGI(log_tag, "server started on port %d", server->config->server_port);
     } else {
         ESP_LOGE(log_tag, "error starting server: %d", err);
     }
