@@ -1,5 +1,5 @@
 /**
- * AESPL Common
+ * AESPL Common Functions
  *
  * Author: Alexander Shepetko <a@shepetko.com>
  * License: MIT
@@ -12,7 +12,7 @@
 #define AESPL_ERR_BASE 0x1000
 
 /**
- * @brief Print binary representation of a number
+ * @brief Print binary representation of an integer
  *
  * @param v      Value
  * @param width  Value width

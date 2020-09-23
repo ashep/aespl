@@ -1,5 +1,5 @@
 /**
- * AESPL Utilities
+ * AESPL Common Functions
  *
  * Author: Alexander Shepetko <a@shepetko.com>
  * License: MIT

@@ -115,8 +115,7 @@ esp_err_t httpd_post_wifi_connect(httpd_req_t *req) {
 
     esp_err_t err = esp_wifi_connect();
     cJSON_AddNumberToObject(resp_json, "result", err);
-
-    if (err != ESP_OK) {
+    if (err) {
         status = HTTPD_500;
     }
 
@@ -132,8 +131,7 @@ esp_err_t httpd_post_wifi_disconnect(httpd_req_t *req) {
 
     esp_err_t err = esp_wifi_disconnect();
     cJSON_AddNumberToObject(resp_json, "result", err);
-
-    if (err != ESP_OK) {
+    if (err) {
         status = HTTPD_500;
     }
 
