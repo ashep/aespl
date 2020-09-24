@@ -1,8 +1,8 @@
 /**
- * AESPL Button
+ * @brief AESPL GPIO Button Driver
  *
- * Author: Alexander Shepetko <a@shepetko.com>
- * License: MIT
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
  */
 
 #include "stdio.h"
@@ -10,6 +10,7 @@
 #include "string.h"
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "freertos/timers.h"
 #include "esp_err.h"
 #include "esp_log.h"
@@ -22,16 +23,21 @@
 static void gpio_l_press_callback(TimerHandle_t t) {
     aespl_button_t *btn = (aespl_button_t *)pvTimerGetTimerID(t);
 
-    // Decrease timer period
-    xTimerChangePeriodFromISR(t, pdMS_TO_TICKS(AESPL_BUTTON_L_PRESS_REPEAT_MS), NULL);
+    btn->is_l_pressed = true;
+    btn->skip_release_handler = true;
+    btn->on_l_press(btn->on_l_press_args);
 
-    btn->is_l_press = true;
-    btn->on_l_press(btn->pin);
+    if (btn->l_press_repeat) {
+        xTimerChangePeriod(t, pdMS_TO_TICKS(AESPL_BUTTON_L_PRESS_REPEAT_MS), 10);
+    } else {
+        xTimerStop(t, 10);
+    }
 }
 
-static void IRAM_ATTR gpio_isr(void *button) {
+static void IRAM_ATTR gpio_isr(void *args) {
     bool is_pressed = false;
-    aespl_button_t *btn = (aespl_button_t *)button;
+    BaseType_t hptw = pdFALSE;
+    aespl_button_t *btn = (aespl_button_t *)args;
 
     // Get current state of the button
     uint8_t lvl = gpio_get_level(btn->pin);
@@ -42,7 +48,7 @@ static void IRAM_ATTR gpio_isr(void *button) {
     }
 
     // Debounce
-    if ((is_pressed && btn->is_pressed) || (!is_pressed && !btn->is_pressed)) {
+    if ((is_pressed && (btn->is_pressed || btn->is_l_pressed)) || (!is_pressed && !(btn->is_pressed || btn->is_l_pressed))) {
         return;
     }
 
@@ -51,52 +57,55 @@ static void IRAM_ATTR gpio_isr(void *button) {
     if (is_pressed) {
         // Call press hook
         if (btn->on_press) {
-            btn->on_press(btn->pin);
+            btn->on_press(btn->on_press_args);
         }
 
         // Start long press timer
-        if (btn->l_press_timer && xTimerStartFromISR(btn->l_press_timer, NULL) != pdPASS) {
+        if (btn->l_press_timer && xTimerStartFromISR(btn->l_press_timer, &hptw) != pdPASS) {
             ets_printf("Error while starting timer on pin %d\n", btn->pin);
         }
-
     } else {
         // Call release hook
-        if (btn->on_release) {
-            btn->on_release(btn->pin);
+        if (btn->skip_release_handler) {
+            btn->skip_release_handler = false;
+        } else if (btn->on_release) {
+            btn->on_release(btn->on_release_args);
         }
 
-        // Button is not under long press anymore
-        if (btn->is_l_press) {
-            btn->is_l_press = false;
-        }
+        // Button is not under long press after releasing
+        btn->is_l_pressed = false;
 
-        // Stop and re-initialize long press timer
-        if (btn->l_press_timer && xTimerIsTimerActive(btn->l_press_timer) == pdTRUE) {
-            if (xTimerChangePeriodFromISR(btn->l_press_timer, pdMS_TO_TICKS(AESPL_BUTTON_L_PRESS_MS), NULL) != pdPASS) {
+        // Re-initialize long press timer
+        if (btn->l_press_timer) {
+            TickType_t t = pdMS_TO_TICKS(AESPL_BUTTON_L_PRESS_MS);
+            if (xTimerChangePeriodFromISR(btn->l_press_timer, t, &hptw) != pdPASS) {
                 ets_printf("Error while setting timer period on pin %d\n", btn->pin);
             }
-
-            if (xTimerStopFromISR(btn->l_press_timer, NULL) != pdPASS) {
+            if (xTimerStopFromISR(btn->l_press_timer, &hptw) != pdPASS) {
                 ets_printf("Error while stopping timer on pin %d\n", btn->pin);
             }
         }
     }
+
+    if (hptw != pdFALSE) {
+        taskYIELD();
+    }
 }
 
-esp_err_t aespl_button_init(aespl_button_t *btn, gpio_num_t pin, aespl_button_conn_type_t conn_type) {
+esp_err_t aespl_button_init(aespl_button_t *btn, gpio_num_t pin, aespl_button_conn_type_t conn_type,
+                            bool l_press_repeat) {
     esp_err_t err;
 
     memset(btn, 0, sizeof(*btn));
 
     btn->pin = pin;
     btn->conn_type = conn_type;
+    btn->l_press_repeat = l_press_repeat;
 
     gpio_config_t gpio_cfg = {
-        1UL << btn->pin,
-        GPIO_MODE_INPUT,
-        GPIO_PULLUP_ENABLE,
-        GPIO_PULLDOWN_DISABLE,
-        GPIO_INTR_ANYEDGE,
+        .pin_bit_mask = 1UL << btn->pin,
+        .mode = GPIO_MODE_INPUT,
+        .intr_type = GPIO_INTR_ANYEDGE,
     };
 
     if (conn_type == AESPL_BUTTON_PRESS_LOW) {
@@ -112,24 +121,27 @@ esp_err_t aespl_button_init(aespl_button_t *btn, gpio_num_t pin, aespl_button_co
         return err;
     }
 
-    return gpio_isr_handler_add(btn->pin, gpio_isr, btn);
+    return gpio_isr_handler_add(btn->pin, gpio_isr, (void *)btn);
 }
 
-esp_err_t aespl_button_on_press(aespl_button_t *btn, aespl_button_callback handler) {
+esp_err_t aespl_button_on_press(aespl_button_t *btn, aespl_button_callback handler, void *args) {
     btn->on_press = handler;
+    btn->on_press_args = args;
 
     return ESP_OK;
 }
 
-esp_err_t aespl_button_on_l_press(aespl_button_t *cfg, aespl_button_callback handler) {
-    cfg->l_press_timer = xTimerCreate("GPIO", pdMS_TO_TICKS(AESPL_BUTTON_L_PRESS_MS), pdTRUE, cfg, gpio_l_press_callback);
-    cfg->on_l_press = handler;
+esp_err_t aespl_button_on_l_press(aespl_button_t *btn, aespl_button_callback handler, void *args) {
+    btn->l_press_timer = xTimerCreate("GPIO", pdMS_TO_TICKS(AESPL_BUTTON_L_PRESS_MS), pdTRUE, btn, gpio_l_press_callback);
+    btn->on_l_press = handler;
+    btn->on_l_press_args = args;
 
     return ESP_OK;
 }
 
-esp_err_t aespl_button_on_release(aespl_button_t *btn, aespl_button_callback handler) {
+esp_err_t aespl_button_on_release(aespl_button_t *btn, aespl_button_callback handler, void *args) {
     btn->on_release = handler;
+    btn->on_release_args = args;
 
     return ESP_OK;
 }

@@ -1,10 +1,10 @@
 /**
- * AESPL Button
+ * @brief AESPL GPIO Button Driver
  *
- * Author: Alexander Shepetko <a@shepetko.com>
- * License: MIT
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
  *
- * Before using this component `gpio_install_isr_service()` should be called.
+ * `gpio_install_isr_service()` should be called before using this component.
  */
 
 #ifndef AESPL_BUTTON_H
@@ -32,7 +32,7 @@
 /**
  * Button callback signature
  */
-typedef void (*aespl_button_callback)(gpio_num_t pin);
+typedef void (*aespl_button_callback)(void *args);
 
 /**
  * Button connection types
@@ -52,44 +52,51 @@ typedef struct {
     gpio_num_t pin;
     aespl_button_conn_type_t conn_type;
     bool is_pressed;
-    bool is_l_press;
+    bool is_l_pressed;
+    bool l_press_repeat;
+    bool skip_release_handler;
     TimerHandle_t l_press_timer;
     aespl_button_callback on_press;
     aespl_button_callback on_l_press;
     aespl_button_callback on_release;
+    void *on_press_args;
+    void *on_l_press_args;
+    void *on_release_args;
 } aespl_button_t;
 
 /**
  * @brief Initialize a button
  *
- * @param btn       Button's configuration
- * @param pin       GPIO pin where the button is connected
- * @param conn_type Button connection type
+ * @param btn            Button's configuration
+ * @param pin            GPIO pin where the button is connected
+ * @param conn_type      Button connection type
+ * @param l_press_repeat Whether long press event should be repeated
  */
-esp_err_t aespl_button_init(aespl_button_t *btn, gpio_num_t pin, aespl_button_conn_type_t conn_type);
+esp_err_t aespl_button_init(aespl_button_t *btn, gpio_num_t pin, aespl_button_conn_type_t conn_type,
+                            bool l_press_repeat);
 
 /**
- * @brief Setup button's press callback
+ * @brief Register button's press callback
  *
  * @param btn     Button's configuration
  * @param handler Callback function
  */
-esp_err_t aespl_button_on_press(aespl_button_t *btn, aespl_button_callback handler);
+esp_err_t aespl_button_on_press(aespl_button_t *btn, aespl_button_callback handler, void *args);
 
 /**
- * @brief Setup button's long press callback
+ * @brief Register button's long press callback
  *
  * @param btn     Button's configuration
  * @param handler Callback function
  */
-esp_err_t aespl_button_on_l_press(aespl_button_t *btn, aespl_button_callback handler);
+esp_err_t aespl_button_on_l_press(aespl_button_t *btn, aespl_button_callback handler, void *args);
 
 /**
- * @brief Setup button's release callback
+ * @brief Register button's release callback
  *
  * @param btn     Button's configuration
  * @param handler Callback function
  */
-esp_err_t aespl_button_on_release(aespl_button_t *btn, aespl_button_callback handler);
+esp_err_t aespl_button_on_release(aespl_button_t *btn, aespl_button_callback handler, void *args);
 
 #endif
