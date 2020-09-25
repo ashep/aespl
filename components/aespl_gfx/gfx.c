@@ -1,8 +1,8 @@
 /**
- * AESPL Graphic
+ * @brief AESPL Graphics
  *
- * Author: Alexander Shepetko <a@shepetko.com>
- * License: MIT
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
  */
 
 #include "stdlib.h"

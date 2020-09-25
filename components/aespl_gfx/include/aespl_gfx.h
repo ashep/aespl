@@ -1,8 +1,8 @@
 /**
- * Graphics Library for ESP8266
+ * @brief AESPL Graphics
  *
- * Author: Alexander Shepetko <a@shepetko.com>
- * License: MIT
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
  */
 
 #ifndef _AESPL_GFX_H_
@@ -92,7 +92,7 @@ typedef enum {
  */
 typedef struct {
     uint8_t ascii_offset;          // char code offset relative to ASCII table
-    uint8_t length;                  // number of covered ASCII codes staring from ascii_offset
+    uint8_t length;                // number of covered ASCII codes staring from ascii_offset
     aespl_gfx_font_width_t width;  // number of bits per row
     uint8_t height;                // number of rows per character
     union {
@@ -301,7 +301,7 @@ esp_err_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aes
  * @param buf   Buffer
  * @param font  Font
  * @param pos   Coordinates
- * @param ch    Character
+ * @param s     String
  * @param color Color
  * @param space Space between characters
  * @return

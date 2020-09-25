@@ -1,3 +1,10 @@
+/**
+ * @brief AESPL Clock Font 1
+ *
+ * @author    Alexnader Shepetko <a@shepetko.com>
+ * @copyright MIT License
+ */
+
 #ifndef _AESPL_GFX_FONT8_CLOCK_1_H_
 #define _AESPL_GFX_FONT8_CLOCK_1_H_
 
@@ -5,6 +12,8 @@
 
 static const uint8_t _font8_clock_1[] =
     {
+        1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,  // . - 46
+        4, 0x10, 0x10, 0x20, 0x20, 0x40, 0x40, 0x80, 0x80,  // / - 47
         5, 0x70, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x70,  // 0 - 48
         5, 0x20, 0x60, 0xA0, 0x20, 0x20, 0x20, 0x20, 0xF8,  // 1 - 49
         5, 0x70, 0x88, 0x08, 0x08, 0x70, 0x80, 0x80, 0xF8,  // 2 - 50
@@ -19,8 +28,8 @@ static const uint8_t _font8_clock_1[] =
 };
 
 aespl_gfx_font_t font8_clock_1 = {
-    .ascii_offset = 48,
-    .length = 11,
+    .ascii_offset = 46,
+    .length = 13,
     .width = AESPL_GFX_FONT_WIDTH_8,
     .height = 8,
     .content.c8 = _font8_clock_1,

@@ -1,3 +1,10 @@
+/**
+ * @brief AESPL Graphics Font 1
+ *
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
+ */
+
 #ifndef _AESPL_GFX_FONT5x8_H_
 #define _AESPL_GFX_FONT5x8_H_
 
