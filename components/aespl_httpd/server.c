@@ -1,3 +1,10 @@
+/**
+ * @brief     AESPL HTTP Server
+ *
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
+ */
+
 #include <string.h>
 #include "esp_log.h"
 #include "esp_event.h"
@@ -7,7 +14,8 @@
 
 static char *log_tag = "aespl_http_server";
 
-esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const char *uri, esp_err_t (*handler)(httpd_req_t *r)) {
+esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const char *uri,
+                             esp_err_t (*handler)(httpd_req_t *r)) {
     if (!server->server) {
         ESP_LOGE(log_tag, "server is not started");
         return AESPL_ERR_HTTPD_NOT_STARTED;
@@ -76,8 +84,6 @@ esp_err_t aespl_httpd_stop(aespl_httpd_t *server) {
 }
 
 esp_err_t aespl_httpd_start(aespl_httpd_t *server, const httpd_config_t *config) {
-    // memset(server, 0, sizeof(*server));
-
     if (!config) {
         httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
         server->config = &cfg;

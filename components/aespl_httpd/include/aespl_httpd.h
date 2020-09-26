@@ -1,8 +1,8 @@
 /**
- * AESPL HTTP Server
+ * @brief     AESPL HTTP Server
  *
- * Author: Alexander Shepetko <a@shepetko.com>
- * License: MIT
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
  */
 
 #ifndef _AESPL_HTTPD_H_
@@ -28,7 +28,8 @@ typedef struct {
  * @param uri     URI
  * @param handler Request handler
  */
-esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const char *uri, esp_err_t (*handler)(httpd_req_t *r));
+esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const char *uri,
+                             esp_err_t (*handler)(httpd_req_t *r));
 
 /**
  * @brief Send a response
@@ -40,7 +41,7 @@ esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const
 esp_err_t aespl_httpd_send(httpd_req_t *req, const char *status, const char *body);
 
 /**
- * @brief Prepare and send a JSON response
+ * @brief Send a JSON response
  *
  * @param req    Request object
  * @param status Response status

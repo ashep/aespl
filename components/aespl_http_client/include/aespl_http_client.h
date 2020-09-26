@@ -1,5 +1,6 @@
 /**
  * @brief     AESPL HTTP Client
+ *
  * @author    Alexander Shepetko <a@shepetko.com>
  * @copyright MIT License
  */
