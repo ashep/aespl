@@ -1,8 +1,7 @@
 /**
- * Simplified HTTP client ESP8266
- * 
- * Author: Alexander Shepetko <a@shepetko.com>
- * License: MIT
+ * @brief     AESPL HTTP Client
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
  */
 
 #include <stdio.h>
@@ -24,61 +23,68 @@
 
 static const char *LOG_TAG = "aespl_http_client";
 
-static aespl_http_response *current_resp = NULL;
-static char *current_header_f = NULL;
-static char *current_header_v = NULL;
-
 static int http_parser_on_headers_complete(http_parser *parser) {
-    if (current_header_f) {
-        free(current_header_f);
+    aespl_http_response *response = (aespl_http_response *)parser->data;
+
+    if (response->tmp_header_field) {
+        free(response->tmp_header_field);
+        response->tmp_header_field = NULL;
     }
 
-    if (current_header_v) {
-        free(current_header_v);
+    if (response->tmp_header_value) {
+        free(response->tmp_header_value);
+        response->tmp_header_value = NULL;
     }
 
     return 0;
 }
 
 static int http_parser_on_message_complete(http_parser *parser) {
-    printf("on_message_complete\n");
     return 0;
 }
 
 static int http_parser_on_header_field(http_parser *parser, const char *at, size_t length) {
-    if (current_header_f) {
-        free(current_header_f);
+    aespl_http_response *response = (aespl_http_response *)parser->data;
+
+    if (response->tmp_header_field) {
+        free(response->tmp_header_field);
     }
 
-    current_header_f = malloc(length + 1);
-    bzero(current_header_f, length + 1);
-    strncpy(current_header_f, at, length);
+    response->tmp_header_field = malloc(length + 1);
+    bzero(response->tmp_header_field, length + 1);
+    strncpy(response->tmp_header_field, at, length);
 
     return 0;
 }
 
 static int http_parser_on_header_value(http_parser *parser, const char *at, size_t length) {
-    if (!current_header_f) {
+    aespl_http_response *response = (aespl_http_response *)parser->data;
+
+    if (!response->tmp_header_field) {
         return 0;
     }
 
-    if (current_header_v) {
-        free(current_header_v);
+    if (response->tmp_header_value) {
+        free(response->tmp_header_value);
     }
 
-    current_header_v = malloc(length + 1);
-    bzero(current_header_v, length + 1);
-    strncpy(current_header_v, at, length);
+    response->tmp_header_value = malloc(length + 1);
+    bzero(response->tmp_header_value, length + 1);
+    strncpy(response->tmp_header_value, at, length);
 
-    http_header_set(current_resp->headers, current_header_f, current_header_v);
+    http_header_set(response->headers, response->tmp_header_field, response->tmp_header_value);
 
     return 0;
 }
 
 static int http_parser_on_body(http_parser *parser, const char *at, size_t length) {
-    current_resp->body = malloc(length + 1);
-    bzero(current_resp->body, length + 1);
-    strncpy(current_resp->body, at, length);
+    aespl_http_response *response = (aespl_http_response *)parser->data;
+
+    response->body = malloc(length + 1);
+    bzero(response->body, length + 1);
+    strncpy(response->body, at, length);
+
+    printf("BODY: %s\n--\n", response->body);
 
     return 0;
 }
@@ -130,7 +136,7 @@ esp_err_t aespl_http_client_request(aespl_http_response *response, enum http_met
         return ESP_FAIL;
     }
     struct in_addr *addr = &((struct sockaddr_in *)addr_info->ai_addr)->sin_addr;
-    ESP_LOGI(LOG_TAG, "IP address of \"%s\": %s", host, inet_ntoa(*addr));
+    ESP_LOGD(LOG_TAG, "IP address of \"%s\": %s", host, inet_ntoa(*addr));
 
     // Allocate socket
     int sock = socket(addr_info->ai_family, addr_info->ai_socktype, 0);
@@ -224,10 +230,6 @@ esp_err_t aespl_http_client_request(aespl_http_response *response, enum http_met
     free(query);
     free(headers_str);
 
-    printf("--- REQUEST\n");
-    printf("%s", req);
-    printf("---\n");
-
     // Send request
     err_i = write(sock, req, req_len);
     if (err_i < 0) {
@@ -284,12 +286,10 @@ esp_err_t aespl_http_client_request(aespl_http_response *response, enum http_met
     // Free socket
     close(sock);
 
-    printf("--- RESPONSE\n");
-    printf("%s", resp_str);
-    printf("---\n");
-
     // Setup HTTP parser
-    http_parser parser;
+    http_parser parser = {
+        .data = (void *)response,
+    };
     http_parser_settings parser_settings;
     http_parser_init(&parser, HTTP_RESPONSE);
     http_parser_settings_init(&parser_settings);
@@ -306,7 +306,6 @@ esp_err_t aespl_http_client_request(aespl_http_response *response, enum http_met
     response->headers = http_header_init();
 
     // Parse the response
-    current_resp = response;
     http_parser_execute(&parser, &parser_settings, resp_str, resp_len);
 
     // Free response string
@@ -325,7 +324,7 @@ esp_err_t aespl_http_client_get(aespl_http_response *response, const char *url, 
 esp_err_t aespl_http_client_get_json(aespl_http_response *response, const char *url, http_header_handle_t headers) {
     esp_err_t err;
     bool own_headers = false;
-    
+
     if (!headers) {
         own_headers = true;
         headers = http_header_init();
@@ -337,7 +336,7 @@ esp_err_t aespl_http_client_get_json(aespl_http_response *response, const char *
     if (!err && response->status_code >= 200 && response->status_code < 300) {
         response->json = cJSON_Parse(response->body);
     }
-    
+
     if (own_headers) {
         http_header_destroy(headers);
     }
@@ -345,24 +344,26 @@ esp_err_t aespl_http_client_get_json(aespl_http_response *response, const char *
     return err;
 }
 
-void aespl_http_client_free(aespl_http_response *resp) {
-    if (resp->body) {
-        free(resp->body);
+void aespl_http_client_free(aespl_http_response *response) {
+    if (response->body) {
+        free(response->body);
     }
 
-    if (current_header_f) {
-        free(current_header_f);
+    if (response->tmp_header_field) {
+        free(response->tmp_header_field);
+        response->tmp_header_field = NULL;
     }
 
-    if (current_header_v) {
-        free(current_header_v);
+    if (response->tmp_header_value) {
+        free(response->tmp_header_value);
+        response->tmp_header_value = NULL;
     }
 
-    if (resp->headers) {
-        http_header_destroy(resp->headers);
+    if (response->headers) {
+        http_header_destroy(response->headers);
     }
 
-    if (resp->json) {
-        cJSON_Delete(resp->json);
+    if (response->json) {
+        cJSON_Delete(response->json);
     }
 }
