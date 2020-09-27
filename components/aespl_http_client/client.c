@@ -40,10 +40,6 @@ static int http_parser_on_headers_complete(http_parser *parser) {
     return 0;
 }
 
-static int http_parser_on_message_complete(http_parser *parser) {
-    return 0;
-}
-
 static int http_parser_on_header_field(http_parser *parser, const char *at, size_t length) {
     aespl_http_response *response = (aespl_http_response *)parser->data;
 
@@ -84,8 +80,6 @@ static int http_parser_on_body(http_parser *parser, const char *at, size_t lengt
     response->body = malloc(length + 1);
     bzero(response->body, length + 1);
     strncpy(response->body, at, length);
-
-    printf("BODY: %s\n--\n", response->body);
 
     return 0;
 }
@@ -300,7 +294,6 @@ esp_err_t aespl_http_client_request(aespl_http_response *response, enum http_met
     parser_settings.on_header_value = &http_parser_on_header_value;
     parser_settings.on_headers_complete = &http_parser_on_headers_complete;
     parser_settings.on_body = &http_parser_on_body;
-    parser_settings.on_message_complete = &http_parser_on_message_complete;
 
     // Initialize response struct
     memset(response, 0, sizeof(*response));
@@ -362,9 +355,11 @@ void aespl_http_client_free(aespl_http_response *response) {
 
     if (response->headers) {
         http_header_destroy(response->headers);
+        response->headers = NULL;
     }
 
     if (response->json) {
         cJSON_Delete(response->json);
+        response->json = NULL;
     }
 }
