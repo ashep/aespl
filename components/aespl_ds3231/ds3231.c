@@ -67,11 +67,12 @@ esp_err_t aespl_ds3231_get_data(aespl_ds3231_t *ds3231, TickType_t timeout) {
     ds3231->dow = buf[3];
 
     // Day of the month
-    ds3231->day = (buf[4] >> 4) * 10 + (0x0f & buf[4]);
+    ds3231->day = (buf[4] >> 4) * 10;  // bits 4-5 are 10-days counter
+    ds3231->day += 0x0f & buf[4];      // bits 0-3 are 1-day counter
 
     // Month
-    ds3231->mon = (0x20 & buf[5]) * 10;  // 4th bit is 10-month counter
-    ds3231->mon += (0x0f & buf[5]);      // bits 0-3 are 1-month counter
+    ds3231->mon = (0x1 & (buf[5] >> 4)) * 10;  // 4th bit is 10-month counter
+    ds3231->mon += 0x0f & buf[5];              // bits 0-3 are 1-month counter
 
     // Year
     ds3231->year = (buf[6] >> 4) * 10;  // bits 7-4 are 10-year counter
@@ -127,6 +128,7 @@ esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231, TickType_t timeout
     // Year
     buf[6] = ((ds3231->year / 10) << 4) | (ds3231->year % 10);
 
+    // Send data to the device
     err = aespl_i2c_write(AESPL_DS3231_I2C_ADDR, AESPL_DS3231_REG_SECONDS, buf, 7, timeout);
     if (err) {
         xSemaphoreGive(ds3231->mux);
