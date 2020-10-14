@@ -1,2 +1,0 @@
-CFS -- Common Functions Service
-===============================

@@ -1,8 +1,8 @@
 /**
- * AESPL Common Functions Service
+ * @brief AESPL Service
  *
- * Author: Alexander Shepetko <a@shepetko.com>
- * License: MIT
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
  */
 
 #ifndef _AESPL_CFS_H_
@@ -16,6 +16,6 @@
  *
  * @param httpd_prefix HTTP URIs prefix
  */
-esp_err_t aespl_cfs_init(aespl_httpd_t *httpd, const char *httpd_prefix);
+esp_err_t aespl_service_init(aespl_httpd_t *httpd, const char *httpd_prefix);
 
 #endif

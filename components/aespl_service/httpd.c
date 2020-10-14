@@ -1,8 +1,8 @@
 /**
- * AESPL Common Functions Service HTTPd handlers
+ * @brief AESPL Service
  *
- * Author: Alexander Shepetko <a@shepetko.com>
- * License: MIT
+ * @author    Alexander Shepetko <a@shepetko.com>
+ * @copyright MIT License
  */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "aespl_http_util.h"
 #include "aespl_httpd.h"
 
-static const char *log_tag = "aespl_cfs";
+static const char *log_tag = "aespl_service";
 
 esp_err_t httpd_get_wifi(httpd_req_t *req) {
     esp_err_t err;
