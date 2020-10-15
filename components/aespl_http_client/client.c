@@ -203,17 +203,18 @@ esp_err_t aespl_http_client_request(aespl_http_response *response, enum http_met
 
     // Build request string
     char *req = malloc(req_len);
-    sprintf(req, "%s %s", http_method_str(method), path);
+    char *offset = req;
+    offset += sprintf(offset, "%s %s", http_method_str(method), path);
     if (strlen(query)) {
-        sprintf(req, "%s?%s", req, query);
+        offset += sprintf(offset, "?%s", query);
     }
-    sprintf(req, "%s %s\r\n", req, HTTP_VERSION);
-    sprintf(req, "%sHost: %s\r\n", req, host);
-    sprintf(req, "%sUser-Agent: %s\r\n", req, USER_AGENT);
+    offset += sprintf(offset, " %s\r\n", HTTP_VERSION);
+    offset += sprintf(offset, "Host: %s\r\n", host);
+    offset += sprintf(offset, "User-Agent: %s\r\n", USER_AGENT);
     if (headers_str) {
-        sprintf(req, "%s%s", req, headers_str);
+        offset += sprintf(offset, "%s", headers_str);
     }
-    sprintf(req, "%s\r\n", req);
+    offset += sprintf(offset, "\r\n");
     if (method != HTTP_GET && body) {
         strcat(req, body);
     }
