@@ -1,7 +1,7 @@
-AESPL -- ashep's ESP library
+aESPL -- ashep's ESP library
 ============================
 
-Simple collection of useful stuff for writing programs for ESP MCUs.
+Simple collection of useful stuff for ESP MCUs programming.
 
 
 Authors

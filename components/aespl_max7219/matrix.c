@@ -7,10 +7,10 @@
 
 #include "stdbool.h"
 #include "esp_err.h"
+#include "agfxl.h"
+#include "aespl_common.h"
 #include "aespl_max7219.h"
 #include "aespl_max7219_matrix.h"
-#include "aespl_gfx.h"
-#include "aespl_common.h"
 
 esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const aespl_max7219_config_t *m7219cfg,
                                     uint8_t disp_x, uint8_t disp_y) {
@@ -21,10 +21,10 @@ esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const ae
     return ESP_OK;
 }
 
-esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, aespl_gfx_buf_t *buf) {
+esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, agfxl_buf_t *buf) {
     esp_err_t err;
-    aespl_gfx_buf_array_t b_arr;
-    err = aespl_gfx_split(&b_arr, buf, cfg->disp_x, cfg->disp_y);
+    agfxl_buf_array_t b_arr;
+    err = agfxl_split(&b_arr, buf, cfg->disp_x, cfg->disp_y);
     if (err) {
         return err;
     }
@@ -44,7 +44,7 @@ esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, ae
         }
     }
 
-    aespl_gfx_free_buf_array(&b_arr);
+    agfxl_free_buf_array(&b_arr);
 
     return ESP_OK;
 }

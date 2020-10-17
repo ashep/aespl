@@ -33,7 +33,8 @@
                 "${IDF_PATH}/components/esp_http_server/include",
                 "${IDF_PATH}/components/esp_http_client/lib/include",
                 "${IDF_PATH}/components/nvs_flash/include",
-                "${AESPL_PATH}/**"
+                "${AESPL_PATH}/**",
+                "${AGFXL_PATH}/**"
             ]
         }
     ],
