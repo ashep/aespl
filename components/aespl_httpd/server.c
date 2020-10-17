@@ -84,19 +84,18 @@ esp_err_t aespl_httpd_stop(aespl_httpd_t *server) {
 }
 
 esp_err_t aespl_httpd_start(aespl_httpd_t *server, const httpd_config_t *config) {
-    if (!config) {
-        httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
-        server->config = &cfg;
-    } else {
+    httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
+    server->config = &cfg;
+    if (config) {
         server->config = config;
     }
 
     esp_err_t err = httpd_start(&server->server, server->config);
     if (err == ESP_OK) {
         ESP_LOGI(log_tag, "server started on port %d", server->config->server_port);
+        return ESP_OK;
     } else {
-        ESP_LOGE(log_tag, "error starting server: %d", err);
+        ESP_LOGE(log_tag, "error starting server: 0x%x", err);
+        return err;
     }
-
-    return ESP_OK;
 }
