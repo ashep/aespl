@@ -1,5 +1,5 @@
 /**
- * @brief AESPL GPIO Button Driver
+ * @brief AESPL Button Driver
  *
  * @author    Alexander Shepetko <a@shepetko.com>
  * @copyright MIT License
@@ -10,7 +10,8 @@
 #ifndef AESPL_BUTTON_H
 #define AESPL_BUTTON_H
 
-#include "stdbool.h"
+#include <stdbool.h>
+#include <sys/time.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 #include "driver/gpio.h"
@@ -23,10 +24,17 @@
 #endif
 
 /*
- * Delay bertwen long press callback calls
+ * Delay between long press callback calls
  */
 #ifndef AESPL_BUTTON_L_PRESS_REPEAT_MS
-#define AESPL_BUTTON_L_PRESS_REPEAT_MS 150
+#define AESPL_BUTTON_L_PRESS_REPEAT_MS 250
+#endif
+
+/**
+ * Upper switch debounce threshold
+ */
+#ifndef AESPL_BUTTON_DEBOUNCE_MS
+#define AESPL_BUTTON_DEBOUNCE_MS 200
 #endif
 
 /**
@@ -35,10 +43,9 @@
 typedef void (*aespl_button_callback)(void *args);
 
 /**
- * Button connection types
- * It means where the other pin of the button is connected to:
- *   AESPL_BUTTON_PRESS_HI -- button connected to VCC
- *   AESPL_BUTTON_PRESS_LOW -- button connected to GND
+ * Button connection type: means where the GPIO pin is connected after button is pressed:
+ *   AESPL_BUTTON_PRESS_HI -- GPIO will be connected to VCC
+ *   AESPL_BUTTON_PRESS_LOW -- GPIO will be connected to GND
  */
 typedef enum {
     AESPL_BUTTON_PRESS_HI,
@@ -51,6 +58,7 @@ typedef enum {
 typedef struct {
     gpio_num_t pin;
     aespl_button_conn_type_t conn_type;
+    struct timeval pressed_at;
     bool is_pressed;
     bool is_l_pressed;
     bool l_press_repeat;
@@ -66,6 +74,7 @@ typedef struct {
 
 /**
  * @brief Initialize a button
+ * @note  `gpio_install_isr_service()` must be called before
  *
  * @param btn            Button's configuration
  * @param pin            GPIO pin where the button is connected
