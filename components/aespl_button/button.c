@@ -1,13 +1,15 @@
 /**
- * @brief AESPL GPIO Button Driver
+ * @brief AESPL Button Driver
  *
  * @author    Alexander Shepetko <a@shepetko.com>
  * @copyright MIT License
  */
 
-#include "stdio.h"
-#include "stdbool.h"
-#include "string.h"
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <sys/time.h>
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -47,9 +49,23 @@ static void IRAM_ATTR gpio_isr(void *args) {
         is_pressed = false;
     }
 
-    // Debounce
-    if ((is_pressed && (btn->is_pressed || btn->is_l_pressed)) || (!is_pressed && !(btn->is_pressed || btn->is_l_pressed))) {
+    // Debounce, skip further work if:
+    // 1. button has "pressed" stated now and it had the same state before;
+    // 2. button has "released" state now and it had the same state before.
+    if ((is_pressed && (btn->is_pressed || btn->is_l_pressed)) ||
+        (!is_pressed && !(btn->is_pressed || btn->is_l_pressed))) {
         return;
+    }
+
+    // Debounce: skip further work if button was pressed too recently
+    if (is_pressed) {
+        struct timeval now;
+        gettimeofday(&now, NULL);
+        long diff = (now.tv_sec - btn->pressed_at.tv_sec) * 1000 + abs((now.tv_usec - btn->pressed_at.tv_usec) / 1000);
+        btn->pressed_at = now;
+        if (diff < AESPL_BUTTON_DEBOUNCE_MS) {
+            return;
+        }
     }
 
     btn->is_pressed = is_pressed;
@@ -72,7 +88,7 @@ static void IRAM_ATTR gpio_isr(void *args) {
             btn->on_release(btn->on_release_args);
         }
 
-        // Button is not under long press after releasing
+        // Button is no under long press after releasing
         btn->is_l_pressed = false;
 
         // Re-initialize long press timer
