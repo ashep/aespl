@@ -9,8 +9,8 @@
 #define _AESPL_MAX7219_MATRIX_H_
 
 #include "driver/gpio.h"
+#include "agfxl.h"
 #include "aespl_max7219.h"
-#include "aespl_gfx.h"
 
 /**
  * MAX7219 matrix configuration structure
@@ -40,6 +40,6 @@ esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const ae
  *
  * @param cfg Configuration
  */
-esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, aespl_gfx_buf_t *buf);
+esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, agfxl_buf_t *buf);
 
 #endif
