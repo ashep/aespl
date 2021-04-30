@@ -10,6 +10,7 @@
 
 #include "driver/gpio.h"
 #include "agfxl.h"
+#include "agfxl_buffer.h"
 #include "aespl_max7219.h"
 
 /**
