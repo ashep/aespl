@@ -5,12 +5,7 @@
  * License: MIT
  */
 
-#include "stdlib.h"
 #include "stdbool.h"
-#include "string.h"
-#include "strings.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "esp_err.h"
 #include "esp8266/eagle_soc.h"
 #include "driver/gpio.h"

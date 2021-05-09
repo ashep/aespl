@@ -1,15 +1,8 @@
-/**
- * @brief aGFXL -- ashep's Graphics Library
- *
- * @author    Alexander Shepetko <a@shepetko.com>
- * @copyright MIT License
- */
-
 #include <stdlib.h>
-#include "agfxl_buffer.h"
-#include "agfxl_geometry.h"
+#include "aespl_gfx_buffer.h"
+#include "aespl_gfx_geometry.h"
 
-agfxl_err_t agfxl_line(agfxl_buf_t *buf, const agfxl_line_t *line, uint32_t color) {
+void aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uint32_t color) {
     uint16_t x1 = line->p1.x, x2 = line->p2.x, y1 = line->p1.y, y2 = line->p2.y;
 
     if (x2 >= buf->width) {
@@ -37,50 +30,41 @@ agfxl_err_t agfxl_line(agfxl_buf_t *buf, const agfxl_line_t *line, uint32_t colo
             }
         }
 
-        agfxl_set_px(buf, abs(x), abs(y), color);
+        aespl_gfx_set_px(buf, abs(x), abs(y), color);
 
         x += dx;
         y += dy;
 
         ++i;
     }
-
-    return AGFXL_OK;
 }
 
-agfxl_err_t agfxl_poly(agfxl_buf_t *buf, const agfxl_poly_t *poly, uint32_t color) {
-    agfxl_err_t err;
-    agfxl_line_t l;
+void aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uint32_t color) {
+    aespl_gfx_line_t l;
 
     for (uint8_t i = 0; i < poly->n_corners; i++) {
         if (i < poly->n_corners - 1) {
-            l = (agfxl_line_t){poly->corners[i], poly->corners[i + 1]};
+            l = (aespl_gfx_line_t) {poly->corners[i], poly->corners[i + 1]};
         } else {
-            l = (agfxl_line_t){poly->corners[i], poly->corners[0]};
+            l = (aespl_gfx_line_t) {poly->corners[i], poly->corners[0]};
         }
 
-        err = agfxl_line(buf, &l, color);
-        if (err) {
-            return err;
-        }
+        aespl_gfx_line(buf, &l, color);
     }
-
-    return AGFXL_OK;
 }
 
-agfxl_err_t agfxl_rect(agfxl_buf_t *buf, const agfxl_point_t p1, const agfxl_point_t p2, uint32_t color) {
-    agfxl_point_t points[4] = {
-        p1,
-        (agfxl_point_t){p2.x, p1.y},
-        p2,
-        (agfxl_point_t){p1.x, p2.y},
+void aespl_gfx_rect(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const aespl_gfx_point_t p2,
+                    uint32_t color) {
+    aespl_gfx_point_t points[4] = {
+            p1, (aespl_gfx_point_t) {p2.x, p1.y},
+            p2, (aespl_gfx_point_t) {p1.x, p2.y},
     };
 
-    return agfxl_poly(buf, &((agfxl_poly_t){4, points}), color);
+    aespl_gfx_poly(buf, &((aespl_gfx_poly_t) {4, points}), color);
 }
 
-agfxl_err_t agfxl_tri(agfxl_buf_t *buf, const agfxl_point_t p1, const agfxl_point_t p2,
-                      const agfxl_point_t p3, uint32_t color) {
-    agfxl_point_t points[3] = {p1, p2, p3};
-    return agfxl_poly(buf, &((agfxl_poly_t){3, points}), color);
+void aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const aespl_gfx_point_t p2,
+                   const aespl_gfx_point_t p3, uint32_t color) {
+    aespl_gfx_point_t points[3] = {p1, p2, p3};
+    aespl_gfx_poly(buf, &((aespl_gfx_poly_t) {3, points}), color);
 }

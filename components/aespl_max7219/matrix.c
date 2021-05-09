@@ -7,8 +7,7 @@
 
 #include "stdbool.h"
 #include "esp_err.h"
-#include "agfxl.h"
-#include "agfxl_buffer.h"
+#include "aespl_gfx_buffer.h"
 #include "aespl_common.h"
 #include "aespl_max7219.h"
 #include "aespl_max7219_matrix.h"
@@ -22,17 +21,17 @@ esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const ae
     return ESP_OK;
 }
 
-esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, agfxl_buf_t *buf) {
+esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, aespl_gfx_buf_t *buf) {
     esp_err_t err;
-    agfxl_buf_array_t *b_arr;
+    aespl_gfx_buf_array_t *b_arr;
 
-    b_arr = agfxl_split_buf(buf, cfg->disp_x, cfg->disp_y);
+    b_arr = aespl_gfx_split(buf, cfg->disp_x, cfg->disp_y);
     if (b_arr == NULL) {
         return ESP_FAIL;
     }
 
     for (uint8_t row_n = 1; row_n <= 8; row_n++) {
-        for (int8_t n = b_arr->length - 1; n >= 0; n--) {
+        for (int16_t n = b_arr->length - 1; n >= 0; n--) {
             uint8_t row_data = *(b_arr->buffers[n]->content[row_n - 1]) >> 24;
             err = aespl_max7219_send(cfg->max7219, row_n, row_data, false);
             if (err) {
@@ -46,7 +45,7 @@ esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, ag
         }
     }
 
-    agfxl_free_buf_array(&b_arr);
+    aespl_gfx_free_buf_array(b_arr);
 
     return ESP_OK;
 }

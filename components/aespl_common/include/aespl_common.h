@@ -12,10 +12,10 @@
 #define AESPL_ERR_BASE 0x1000
 
 /**
- * @brief Print binary representation of an integer
+ * @brief Prints binary representation of an integer.
  *
  * @param v      Value
- * @param width  Value width
+ * @param width  Value width in bits
  */
 void print_bin(uint32_t v, uint8_t width);
 

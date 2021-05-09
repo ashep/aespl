@@ -1,6 +1,6 @@
 # AESPL -- An ESP Library
 
-Simple collection of useful stuff for ESP MCUs programming.
+Simple collection of useful stuff for ESP8266 and ESP32 MCUs programming.
 
 # Authors
 
