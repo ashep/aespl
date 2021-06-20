@@ -22,9 +22,9 @@ esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const
     }
 
     httpd_uri_t h = {
-        .uri = uri,
-        .method = method,
-        .handler = handler,
+            .uri = uri,
+            .method = method,
+            .handler = handler,
     };
 
     esp_err_t err = httpd_register_uri_handler(server->server, &h);
@@ -64,9 +64,31 @@ esp_err_t aespl_httpd_send_json(httpd_req_t *req, const char *status, cJSON *jso
     }
 
     char *body = cJSON_PrintUnformatted(json);
+    if (!body) {
+        ESP_LOGE(log_tag, "unable to format JSON");
+        return ESP_FAIL;
+    }
 
     err = aespl_httpd_send(req, status, body);
     free(body);
+
+    return err;
+}
+
+esp_err_t aespl_httpd_send_json_result(httpd_req_t *req, const char *status, cJSON *result) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddItemToObject(root, "result", result);
+    esp_err_t err = aespl_httpd_send_json(req, status, root);
+    cJSON_Delete(root);
+
+    return err;
+}
+
+esp_err_t aespl_httpd_send_json_error(httpd_req_t *req, const char *status, int code) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "error", code);
+    esp_err_t err = aespl_httpd_send_json(req, status, root);
+    cJSON_Delete(root);
 
     return err;
 }
@@ -85,6 +107,7 @@ esp_err_t aespl_httpd_stop(aespl_httpd_t *server) {
 
 esp_err_t aespl_httpd_start(aespl_httpd_t *server, const httpd_config_t *config) {
     httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
+    cfg.stack_size = 16384;
     server->config = &cfg;
     if (config) {
         server->config = config;

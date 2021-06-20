@@ -33,7 +33,7 @@ esp_err_t aespl_service_init(aespl_httpd_t *httpd, const char *httpd_prefix) {
 
     strcpy(buf, httpd_prefix);
     strcat(buf, "/wifi/scan");
-    err = aespl_httpd_handle(httpd, HTTP_GET, buf, httpd_get_wifi_scan);
+    err = aespl_httpd_handle(httpd, HTTP_POST, buf, httpd_post_wifi_scan);
     if (err != ESP_OK) {
         return err;
     }

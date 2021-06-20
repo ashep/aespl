@@ -5,11 +5,9 @@
  * @copyright MIT License
  */
 
-#include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "esp_err.h"
-#include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "aespl_i2c.h"
 #include "aespl_ds3231.h"

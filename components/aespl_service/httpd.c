@@ -5,7 +5,6 @@
  * @copyright MIT License
  */
 
-#include <stdio.h>
 #include <stdbool.h>
 #include "cJSON.h"
 #include "esp_err.h"
@@ -15,128 +14,136 @@
 #include "aespl_http_util.h"
 #include "aespl_httpd.h"
 
-static const char *log_tag = "aespl_service";
+static const char *LOG_TAG = "aespl_service";
 
 esp_err_t httpd_get_wifi(httpd_req_t *req) {
     esp_err_t err;
-    cJSON *root = cJSON_CreateObject();
 
-    // Current connection status
+
     wifi_ap_record_t ap_info = {};
     err = esp_wifi_sta_get_ap_info(&ap_info);
-    if (err == ESP_OK) {
-        cJSON_AddTrueToObject(root, "connected");
-    } else {
-        ESP_LOGW(log_tag, "esp_wifi_sta_get_ap_info(): %#x", err);
-        cJSON_AddFalseToObject(root, "connected");
+
+    if (err != ESP_OK) {
+        ESP_LOGW(LOG_TAG, "esp_wifi_sta_get_ap_info(): %#x, %s", err, esp_err_to_name(err));
+        aespl_httpd_send_json_result(req, HTTPD_200, cJSON_CreateFalse());
+        return ESP_OK;
     }
 
-    aespl_httpd_send_json(req, HTTPD_200, root);
+    cJSON *res = cJSON_CreateObject();
+    cJSON_AddStringToObject(res, "ssid", (const char *) ap_info.ssid);
+    cJSON_AddNumberToObject(res, "rssi", ap_info.rssi);
+    aespl_httpd_send_json_result(req, HTTPD_200, res);
+    cJSON_Delete(res);
 
     return ESP_OK;
 }
 
-esp_err_t httpd_get_wifi_scan(httpd_req_t *req) {
+esp_err_t httpd_post_wifi_scan(httpd_req_t *req) {
     esp_err_t err;
-    cJSON *root = cJSON_CreateArray();
 
-    // Available WiFi AP names
     wifi_scan_config_t scan_cfg = {};
-    ESP_LOGI(log_tag, "Starting WiFi scan");
-    err = esp_wifi_scan_start(&scan_cfg, true);
+    ESP_LOGI(LOG_TAG, "starting wifi scan");
 
-    if (err == ESP_OK) {
-        uint16_t n_rec = 10;
-        wifi_ap_record_t *scan_results = calloc(n_rec, sizeof(wifi_ap_record_t));
-        err = esp_wifi_scan_get_ap_records(&n_rec, scan_results);
-        if (err == ESP_OK) {
-            for (uint16_t i = 0; i < n_rec; i++) {
-                wifi_ap_record_t res = scan_results[i];
-                cJSON *ap_desc = cJSON_CreateArray();
-                cJSON_AddItemToArray(ap_desc, cJSON_CreateNumber((double)res.rssi));
-                cJSON_AddItemToArray(ap_desc, cJSON_CreateString((const char *)res.ssid));
-                cJSON_AddItemToArray(root, ap_desc);
-                ESP_LOGI(log_tag, "Found WiFi AP: %s, %ddBm", res.ssid, res.rssi);
-            }
-            free(scan_results);
-        } else {
-            ESP_LOGE(log_tag, "esp_wifi_scan_get_ap_records() failed: %#x", err);
-        }
-    } else {
-        ESP_LOGE(log_tag, "esp_wifi_scan_start() failed: %#x", err);
+    err = esp_wifi_scan_start(&scan_cfg, true);
+    if (err != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "esp_wifi_scan_start() failed: %#x", err);
+        return err;
     }
 
-    aespl_httpd_send_json(req, HTTPD_200, root);
+    cJSON *res = cJSON_CreateArray();
+    uint16_t n_rec = 5;
+    wifi_ap_record_t *scan_results = calloc(n_rec, sizeof(wifi_ap_record_t));
+
+    err = esp_wifi_scan_get_ap_records(&n_rec, scan_results);
+    if (err == ESP_OK) {
+        for (uint16_t i = 0; i < n_rec; i++) {
+            wifi_ap_record_t scan_res = scan_results[i];
+            cJSON *ap_desc = cJSON_CreateArray();
+            cJSON_AddItemToArray(ap_desc, cJSON_CreateNumber((double) scan_res.rssi));
+            cJSON_AddItemToArray(ap_desc, cJSON_CreateString((const char *) scan_res.ssid));
+            cJSON_AddItemToArray(ap_desc, cJSON_CreateNumber(scan_res.authmode));
+            cJSON_AddItemToArray(res, ap_desc);
+            ESP_LOGD(LOG_TAG, "found WiFi AP: %s, %ddBm", scan_res.ssid, scan_res.rssi);
+        }
+        aespl_httpd_send_json_result(req, HTTPD_200, res);
+    } else {
+        ESP_LOGE(LOG_TAG, "esp_wifi_scan_get_ap_records() failed: %#x", err);
+        aespl_httpd_send_json_error(req, HTTPD_500, err);
+    }
+
+    free(scan_results);
+    cJSON_Delete(res);
 
     return ESP_OK;
 }
 
 esp_err_t httpd_post_wifi(httpd_req_t *req) {
     esp_err_t err;
-    char *status = HTTPD_200;
-    cJSON *req_json = http_util_parse_req_body_json(req);
-    cJSON *resp_json = cJSON_CreateObject();
 
+    cJSON *req_json = http_util_parse_req_body_json(req);
     if (req_json == NULL) {
-        cJSON_AddStringToObject(resp_json, "error", "Malformed JSON");
-        aespl_httpd_send_json(req, HTTPD_400, resp_json);
-        cJSON_Delete(req_json);
-        cJSON_Delete(resp_json);
-        return ESP_OK;
+        ESP_LOGW(LOG_TAG, "httpd_post_wifi(): failed to parse incoming JSON");
+        aespl_httpd_send_json_error(req, HTTPD_400, ESP_ERR_INVALID_ARG);
+        return ESP_ERR_INVALID_ARG;
     }
 
     cJSON *ssid = cJSON_GetObjectItem(req_json, "ap_ssid");
-    cJSON *pwd = cJSON_GetObjectItem(req_json, "ap_pass");
-    if (cJSON_IsString(ssid) && cJSON_IsString(pwd)) {
-        ESP_LOGI(log_tag, "WiFi settings received: \"%s\", \"%s\"", ssid->valuestring, pwd->valuestring);
-
-        wifi_config_t cfg = {.sta = {}};
-        strncpy((char *)cfg.sta.ssid, ssid->valuestring, 32);
-        strncpy((char *)cfg.sta.password, pwd->valuestring, 64);
-
-        err = esp_wifi_set_config(ESP_IF_WIFI_STA, &cfg);
-        if (err != ESP_OK) {
-            status = HTTPD_500;
-            ESP_LOGW(log_tag, "esp_wifi_set_config(): %#x", err);
-            cJSON_AddStringToObject(resp_json, "error", "esp_wifi_set_config() error");
-        }
+    if (!cJSON_IsString(ssid)) {
+        ESP_LOGW(LOG_TAG, "httpd_post_wifi(): ap_ssid is not valid");
+        cJSON_Delete(req_json);
+        aespl_httpd_send_json_error(req, HTTPD_400, ESP_ERR_INVALID_ARG);
+        return ESP_ERR_INVALID_ARG;
     }
 
-    aespl_httpd_send_json(req, status, resp_json);
+    cJSON *pass = cJSON_GetObjectItem(req_json, "ap_pass");
+    if (!cJSON_IsString(pass)) {
+        ESP_LOGW(LOG_TAG, "httpd_post_wifi(): ap_pass is not valid");
+        cJSON_Delete(req_json);
+        aespl_httpd_send_json_error(req, HTTPD_400, ESP_ERR_INVALID_ARG);
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    ESP_LOGI(LOG_TAG, "WiFi settings received: \"%s\", \"%s\"", ssid->valuestring, pass->valuestring);
+
+    wifi_config_t cfg = {.sta = {}};
+    strncpy((char *) cfg.sta.ssid, ssid->valuestring, 32);
+    strncpy((char *) cfg.sta.password, pass->valuestring, 64);
     cJSON_Delete(req_json);
-    cJSON_Delete(resp_json);
+
+    err = esp_wifi_set_config(ESP_IF_WIFI_STA, &cfg);
+    if (err != ESP_OK) {
+        ESP_LOGW(LOG_TAG, "esp_wifi_set_config(): %#x, %s", err, esp_err_to_name(err));
+        aespl_httpd_send_json_error(req, HTTPD_500, err);
+        return err;
+    }
+
+    cJSON *res = cJSON_CreateTrue();
+    aespl_httpd_send_json_result(req, HTTPD_200, res);
+    cJSON_Delete(res);
 
     return ESP_OK;
 }
 
 esp_err_t httpd_post_wifi_connect(httpd_req_t *req) {
-    char *status = HTTPD_200;
-    cJSON *resp_json = cJSON_CreateObject();
-
     esp_err_t err = esp_wifi_connect();
-    cJSON_AddNumberToObject(resp_json, "result", err);
-    if (err) {
-        status = HTTPD_500;
+    if (err != ESP_OK) {
+        aespl_httpd_send_json_error(req, HTTPD_500, err);
+        return err;
     }
 
-    aespl_httpd_send_json(req, status, resp_json);
-    cJSON_Delete(resp_json);
+    aespl_httpd_send_json_result(req, HTTPD_200, cJSON_CreateTrue());
 
     return ESP_OK;
 }
 
 esp_err_t httpd_post_wifi_disconnect(httpd_req_t *req) {
-    char *status = HTTPD_200;
-    cJSON *resp_json = cJSON_CreateObject();
-
     esp_err_t err = esp_wifi_disconnect();
-    cJSON_AddNumberToObject(resp_json, "result", err);
-    if (err) {
-        status = HTTPD_500;
+    if (err != ESP_OK) {
+        aespl_httpd_send_json_error(req, HTTPD_500, err);
+        return err;
     }
 
-    aespl_httpd_send_json(req, status, resp_json);
-    cJSON_Delete(resp_json);
+    aespl_httpd_send_json_result(req, HTTPD_200, cJSON_CreateTrue());
 
     return ESP_OK;
 }

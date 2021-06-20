@@ -41,13 +41,31 @@ esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const
 esp_err_t aespl_httpd_send(httpd_req_t *req, const char *status, const char *body);
 
 /**
- * @brief Send a JSON response
+ * @brief Send a JSON response.
  *
  * @param req    Request object
  * @param status Response status
  * @param json   JSON data
  */
 esp_err_t aespl_httpd_send_json(httpd_req_t *req, const char *status, cJSON *json);
+
+/**
+ * @brief Send a JSON "result" response.
+ *
+ * @param req    Request object
+ * @param status Response status
+ * @param result Result data
+ */
+esp_err_t aespl_httpd_send_json_result(httpd_req_t *req, const char *status, cJSON *result);
+
+/**
+ * @brief Send a JSON "error" response.
+ *
+ * @param req    Request object
+ * @param status Response status
+ * @param error  Error data
+ */
+esp_err_t aespl_httpd_send_json_error(httpd_req_t *req, const char *status, int code);
 
 /**
  * @brief Stop the HTTP server

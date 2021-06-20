@@ -5,8 +5,8 @@
  * @copyright MIT License
  */
 
-#ifndef _AESPL_CFS_H_
-#define _AESPL_CFS_H_
+#ifndef _AESPL_SERVICE_H_
+#define _AESPL_SERVICE_H_
 
 #include "esp_err.h"
 #include "aespl_httpd.h"
@@ -18,4 +18,4 @@
  */
 esp_err_t aespl_service_init(aespl_httpd_t *httpd, const char *httpd_prefix);
 
-#endif
+#endif  // _AESPL_SERVICE_H_

@@ -5,9 +5,7 @@
  * @copyright MIT License
  */
 
-#include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
-#include "freertos/semphr.h"
 #include "esp_err.h"
 #include "driver/i2c.h"
 
