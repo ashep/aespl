@@ -8,12 +8,11 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "esp_err.h"
-#include "driver/i2c.h"
 #include "aespl_i2c.h"
 #include "aespl_ds3231.h"
 #include "aespl_common.h"
 
-esp_err_t aespl_ds3231_init(aespl_ds3231_t *ds3231, i2c_port_t num) {
+esp_err_t aespl_ds3231_init(aespl_ds3231_t *ds3231) {
     ds3231->mux = xSemaphoreCreateBinary();
     if (!ds3231->mux) {
         return ESP_FAIL;
@@ -22,8 +21,6 @@ esp_err_t aespl_ds3231_init(aespl_ds3231_t *ds3231, i2c_port_t num) {
     if (xSemaphoreGive(ds3231->mux) != pdTRUE) {
         return ESP_FAIL;
     }
-
-    ds3231->i2c_port = num;
 
     return ESP_OK;
 }

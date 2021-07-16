@@ -41,7 +41,6 @@ typedef enum {
 
 typedef struct {
     SemaphoreHandle_t mux;
-    i2c_port_t i2c_port;
     bool h12;  // 12-hour format
     bool pm;   // false == AM, true == PM
     uint8_t sec;
@@ -59,7 +58,7 @@ typedef struct {
  *
  * @param ds3231  Device configuration
  */
-esp_err_t aespl_ds3231_init(aespl_ds3231_t *ds3231, i2c_port_t num);
+esp_err_t aespl_ds3231_init(aespl_ds3231_t *ds3231);
 
 /**
  * @brief Reads data from a device.
