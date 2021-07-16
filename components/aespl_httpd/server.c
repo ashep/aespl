@@ -57,6 +57,12 @@ esp_err_t aespl_httpd_send_json(httpd_req_t *req, const char *status, cJSON *jso
         return err;
     }
 
+    err = httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    if (err != ESP_OK) {
+        ESP_LOGE(log_tag, "unable to set response header");
+        return err;
+    }
+
     err = httpd_resp_set_status(req, status);
     if (err != ESP_OK) {
         ESP_LOGE(log_tag, "unable to set response status");
@@ -108,6 +114,7 @@ esp_err_t aespl_httpd_stop(aespl_httpd_t *server) {
 esp_err_t aespl_httpd_start(aespl_httpd_t *server, const httpd_config_t *config) {
     httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
     cfg.stack_size = 16384;
+    cfg.max_uri_handlers = 10;
     server->config = &cfg;
     if (config) {
         server->config = config;
