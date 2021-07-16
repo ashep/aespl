@@ -16,6 +16,40 @@
 
 static const char *LOG_TAG = "aespl_service";
 
+esp_err_t httpd_options(httpd_req_t *req) {
+    esp_err_t err = httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    if (err != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "unable to set Access-Control-Allow-Origin");
+        return err;
+    }
+
+    err = httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    if (err != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "unable to set Access-Control-Allow-Methods");
+        return err;
+    }
+
+    err = httpd_resp_set_hdr(req, "Access-Control-Allow-Headers", "Content-Type");
+    if (err != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "unable to set Access-Control-Allow-Headers");
+        return err;
+    }
+
+    err = httpd_resp_set_status(req, HTTPD_204);
+    if (err != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "unable to set response status");
+        return err;
+    }
+
+    err = aespl_httpd_send(req, HTTPD_204, "");
+    if (err != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "unable to send response");
+        return err;
+    }
+
+    return ESP_OK;
+}
+
 esp_err_t httpd_get_wifi(httpd_req_t *req) {
     esp_err_t err;
 
@@ -59,8 +93,8 @@ esp_err_t httpd_post_wifi_scan(httpd_req_t *req) {
         for (uint16_t i = 0; i < n_rec; i++) {
             wifi_ap_record_t scan_res = scan_results[i];
             cJSON *ap_desc = cJSON_CreateArray();
-            cJSON_AddItemToArray(ap_desc, cJSON_CreateNumber((double) scan_res.rssi));
             cJSON_AddItemToArray(ap_desc, cJSON_CreateString((const char *) scan_res.ssid));
+            cJSON_AddItemToArray(ap_desc, cJSON_CreateNumber((double) scan_res.rssi));
             cJSON_AddItemToArray(ap_desc, cJSON_CreateNumber(scan_res.authmode));
             cJSON_AddItemToArray(res, ap_desc);
             ESP_LOGD(LOG_TAG, "found WiFi AP: %s, %ddBm", scan_res.ssid, scan_res.rssi);
@@ -87,17 +121,17 @@ esp_err_t httpd_post_wifi(httpd_req_t *req) {
         return ESP_ERR_INVALID_ARG;
     }
 
-    cJSON *ssid = cJSON_GetObjectItem(req_json, "ap_ssid");
+    cJSON *ssid = cJSON_GetObjectItem(req_json, "ssid");
     if (!cJSON_IsString(ssid)) {
-        ESP_LOGW(LOG_TAG, "httpd_post_wifi(): ap_ssid is not valid");
+        ESP_LOGW(LOG_TAG, "httpd_post_wifi(): 'ssid' field is not valid");
         cJSON_Delete(req_json);
         aespl_httpd_send_json_error(req, HTTPD_400, ESP_ERR_INVALID_ARG);
         return ESP_ERR_INVALID_ARG;
     }
 
-    cJSON *pass = cJSON_GetObjectItem(req_json, "ap_pass");
+    cJSON *pass = cJSON_GetObjectItem(req_json, "password");
     if (!cJSON_IsString(pass)) {
-        ESP_LOGW(LOG_TAG, "httpd_post_wifi(): ap_pass is not valid");
+        ESP_LOGW(LOG_TAG, "httpd_post_wifi(): 'password' field is not valid");
         cJSON_Delete(req_json);
         aespl_httpd_send_json_error(req, HTTPD_400, ESP_ERR_INVALID_ARG);
         return ESP_ERR_INVALID_ARG;

@@ -10,44 +10,57 @@
 #include "aespl_service_httpd.h"
 
 esp_err_t aespl_service_init(aespl_httpd_t *httpd, const char *httpd_prefix) {
-    char buf[100];
+    char uri[100];
     esp_err_t err;
 
     if (!httpd_prefix) {
         httpd_prefix = "";
     }
 
-    strcpy(buf, httpd_prefix);
-    strcat(buf, "/wifi");
-    err = aespl_httpd_handle(httpd, HTTP_GET, buf, httpd_get_wifi);
+    strcpy(uri, httpd_prefix);
+    strcat(uri, "/wifi");
+    err = aespl_httpd_handle(httpd, HTTP_GET, uri, httpd_get_wifi);
+    if (err != ESP_OK) {
+        return err;
+    }
+    err = aespl_httpd_handle(httpd, HTTP_POST, uri, httpd_post_wifi);
+    if (err != ESP_OK) {
+        return err;
+    }
+    err = aespl_httpd_handle(httpd, HTTP_OPTIONS, uri, httpd_options);
     if (err != ESP_OK) {
         return err;
     }
 
-    strcpy(buf, httpd_prefix);
-    strcat(buf, "/wifi");
-    err = aespl_httpd_handle(httpd, HTTP_POST, buf, httpd_post_wifi);
+    strcpy(uri, httpd_prefix);
+    strcat(uri, "/wifi/scan");
+    err = aespl_httpd_handle(httpd, HTTP_POST, uri, httpd_post_wifi_scan);
+    if (err != ESP_OK) {
+        return err;
+    }
+    err = aespl_httpd_handle(httpd, HTTP_OPTIONS, uri, httpd_options);
     if (err != ESP_OK) {
         return err;
     }
 
-    strcpy(buf, httpd_prefix);
-    strcat(buf, "/wifi/scan");
-    err = aespl_httpd_handle(httpd, HTTP_POST, buf, httpd_post_wifi_scan);
+    strcpy(uri, httpd_prefix);
+    strcat(uri, "/wifi/connect");
+    err = aespl_httpd_handle(httpd, HTTP_POST, uri, httpd_post_wifi_connect);
+    if (err != ESP_OK) {
+        return err;
+    }
+    err = aespl_httpd_handle(httpd, HTTP_OPTIONS, uri, httpd_options);
     if (err != ESP_OK) {
         return err;
     }
 
-    strcpy(buf, httpd_prefix);
-    strcat(buf, "/wifi/connect");
-    err = aespl_httpd_handle(httpd, HTTP_POST, buf, httpd_post_wifi_connect);
+    strcpy(uri, httpd_prefix);
+    strcat(uri, "/wifi/disconnect");
+    err = aespl_httpd_handle(httpd, HTTP_POST, uri, httpd_post_wifi_disconnect);
     if (err != ESP_OK) {
         return err;
     }
-
-    strcpy(buf, httpd_prefix);
-    strcat(buf, "/wifi/disconnect");
-    err = aespl_httpd_handle(httpd, HTTP_POST, buf, httpd_post_wifi_disconnect);
+    err = aespl_httpd_handle(httpd, HTTP_OPTIONS, uri, httpd_options);
     if (err != ESP_OK) {
         return err;
     }
