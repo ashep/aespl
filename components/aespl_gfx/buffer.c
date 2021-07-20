@@ -24,13 +24,13 @@ aespl_gfx_buf_t *aespl_gfx_make_buf(uint16_t width, uint16_t height, aespl_gfx_c
     // Pixels per row
     switch (c_mode) {
         case AESPL_GFX_C_MODE_MONO:
-            buf->ppw = sizeof(**buf->content) * 8;  // 8 bits per pixel,
+            buf->ppw = sizeof(**buf->content) * 8;  // 8 pixels per word
             break;
         case AESPL_GFX_C_MODE_RGB565:
-            buf->ppw = sizeof(**buf->content) * 8 / 16;  // 16 bits per pixel
+            buf->ppw = sizeof(**buf->content) * 8 / 16;  // 2 pixels per word
             break;
         case AESPL_GFX_C_MODE_ARGB888:
-            buf->ppw = 1;  // 32 bit per pixel
+            buf->ppw = 1;  // 1 pixel per word
             break;
     }
 
@@ -48,7 +48,7 @@ aespl_gfx_buf_t *aespl_gfx_make_buf(uint16_t width, uint16_t height, aespl_gfx_c
         }
     }
 
-    // Fill buffer with zeroes
+    // Fill buffer with zeros
     aespl_gfx_clear_buf(buf);
 
     return buf;
