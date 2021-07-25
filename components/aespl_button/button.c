@@ -10,16 +10,19 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
+
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
+
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_attr.h"
 #include "rom/ets_sys.h"
 #include "driver/hw_timer.h"
 #include "driver/gpio.h"
+
 #include "aespl_button.h"
 
 static void gpio_l_press_callback(TimerHandle_t t) {
@@ -27,9 +30,10 @@ static void gpio_l_press_callback(TimerHandle_t t) {
 
     btn->is_l_pressed = true;
     btn->skip_release_handler = true;
-    btn->on_l_press(btn->on_l_press_args);
 
-    if (btn->l_press_repeat) {
+    bool res = btn->on_l_press(btn->on_l_press_args);
+
+    if (res && btn->l_press_repeat) {
         xTimerChangePeriod(t, pdMS_TO_TICKS(AESPL_BUTTON_L_PRESS_REPEAT_MS), 10);
     } else {
         xTimerStop(t, 10);

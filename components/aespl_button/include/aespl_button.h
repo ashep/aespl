@@ -12,8 +12,10 @@
 
 #include <stdbool.h>
 #include <sys/time.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
+
 #include "driver/gpio.h"
 
 /**
@@ -40,7 +42,7 @@
 /**
  * Button callback signature
  */
-typedef void (*aespl_button_callback)(void *args);
+typedef bool (*aespl_button_callback)(void *args);
 
 /**
  * Button connection type: means where the GPIO pin is connected after button is pressed:
