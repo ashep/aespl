@@ -7,7 +7,10 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+
 #include "esp_err.h"
+#include "esp_log.h"
+
 #include "aespl_i2c.h"
 #include "aespl_ds3231.h"
 #include "aespl_common.h"
@@ -47,10 +50,10 @@ esp_err_t aespl_ds3231_get_data(aespl_ds3231_t *ds3231, TickType_t timeout) {
     ds3231->min = (buf[1] >> 4) * 10 + (0x0f & buf[1]);
 
     // Hour
-    ds3231->h12 = buf[2] >> 6;
-    if (ds3231->h12) {
-        ds3231->pm = (0x20 & buf[2]) >> 5;            // 5th bit is AM/PM flag
-        ds3231->hour += ((0x10 & buf[2]) >> 4) * 10;  // 4th bit is 10-hours counter
+    ds3231->time_12 = buf[2] >> 6; // 6th bit is 12-hour mode flag
+    if (ds3231->time_12) {
+        ds3231->time_pm = (0x20 & buf[2]) >> 5;       // 5th bit is AM/PM flag
+        ds3231->hour = ((0x10 & buf[2]) >> 4) * 10;  // 4th bit is 10-hours counter
         ds3231->hour += 0x0f & buf[2];                // bits 0-3 are 1-hour counter
     } else {
         ds3231->hour = ((0x20 & buf[2]) >> 5) * 20;   // 5th bit is 20-hours counter
@@ -72,6 +75,24 @@ esp_err_t aespl_ds3231_get_data(aespl_ds3231_t *ds3231, TickType_t timeout) {
     // Year
     ds3231->year = (buf[6] >> 4) * 10;  // bits 7-4 are 10-year counter
     ds3231->year += (0x0f & buf[6]);    // bits 0-3 are 1-year counter
+
+    // Alarm 1, second
+    ds3231->alarm_1_sec = ((buf[7] >> 4) & 0x47) * 10 + (buf[7] & 0x0f);
+
+    // Alarm 1, minute
+    ds3231->alarm_1_min = ((buf[8] >> 4) & 0x47) * 10 + (buf[8] & 0x0f);
+
+    // Alarm 1, hour
+    ds3231->alarm_1_12 = (buf[9] >> 6) & 0x1; // 6th bit is 12-hour mode flag
+    if (ds3231->alarm_1_12) {
+        ds3231->alarm_1_pm = (buf[9] >> 5) & 0x1;    // 5th bit is AM/PM flag
+        ds3231->alarm_1_hour = ((buf[9] >> 4) & 0x1) * 10;   // 4th bit is 10-hours counter
+        ds3231->alarm_1_hour += 0x0f & buf[9];               // bits 0-3 are 1-hour counter
+    } else {
+        ds3231->alarm_1_hour = ((0x20 & buf[9]) >> 5) * 20;   // 5th bit is 20-hours counter
+        ds3231->alarm_1_hour += ((0x10 & buf[9]) >> 4) * 10;  // 4th bit is 10-hours counter
+        ds3231->alarm_1_hour += 0x0f & buf[9];                // bits 0-3 are 1-hour counter
+    }
 
     // Temperature
     ds3231->temp = 0x7f & buf[17];          // bits 6-0 of the byte 17 are integer part without sign
@@ -104,9 +125,9 @@ esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231, TickType_t timeout
     buf[1] = ((ds3231->min / 10) << 4) | (ds3231->min % 10);
 
     // Hour
-    buf[2] = ds3231->h12 << 6;
-    if (ds3231->h12) {
-        buf[2] |= (ds3231->pm << 5) | ((ds3231->hour / 10) << 4) | (ds3231->hour % 10);
+    buf[2] = ds3231->time_12 << 6;
+    if (ds3231->time_12) {
+        buf[2] |= (ds3231->time_pm << 5) | ((ds3231->hour / 10) << 4) | (ds3231->hour % 10);
     } else {
         buf[2] |= ((ds3231->hour / 20) << 5) | ((ds3231->hour / 10) << 4) | (ds3231->hour % 10);
     }
@@ -123,8 +144,22 @@ esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231, TickType_t timeout
     // Year
     buf[6] = ((ds3231->year / 10) << 4) | (ds3231->year % 10);
 
+    // Alarm 1, second
+    buf[7] = ((ds3231->alarm_1_sec / 10) << 4) | (ds3231->alarm_1_sec % 10);
+
+    // Alarm 1, minute
+    buf[8] = ((ds3231->alarm_1_min / 10) << 4) | (ds3231->alarm_1_min % 10);
+
+    // Alarm 1, hour
+    buf[9] = ds3231->alarm_1_12 << 6;
+    if (ds3231->alarm_1_12) {
+        buf[9] |= (ds3231->alarm_1_pm << 5) | ((ds3231->alarm_1_hour / 10) << 4) | (ds3231->alarm_1_hour % 10);
+    } else {
+        buf[9] |= ((ds3231->alarm_1_hour / 20) << 5) | ((ds3231->alarm_1_hour / 10) << 4) | (ds3231->alarm_1_hour % 10);
+    }
+
     // Send data to the device
-    err = aespl_i2c_write(AESPL_DS3231_I2C_ADDR, AESPL_DS3231_REG_SECONDS, buf, 7, timeout);
+    err = aespl_i2c_write(AESPL_DS3231_I2C_ADDR, AESPL_DS3231_REG_SECONDS, buf, 10, timeout);
     if (err) {
         xSemaphoreGive(ds3231->mux);
         return err;

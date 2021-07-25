@@ -41,8 +41,8 @@ typedef enum {
 
 typedef struct {
     SemaphoreHandle_t mux;
-    bool h12;  // 12-hour format
-    bool pm;   // false == AM, true == PM
+    bool time_12;  // 12-hour format
+    bool time_pm;  // false == AM, true == PM
     uint8_t sec;
     uint8_t min;
     uint8_t hour;
@@ -50,6 +50,11 @@ typedef struct {
     uint8_t day;
     uint8_t mon;
     uint8_t year;
+    bool alarm_1_12;
+    bool alarm_1_pm;
+    uint8_t alarm_1_sec;
+    uint8_t alarm_1_min;
+    uint8_t alarm_1_hour;
     double temp;
 } aespl_ds3231_t;
 
