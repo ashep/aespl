@@ -20,6 +20,7 @@ typedef struct {
     const aespl_max7219_config_t *max7219;  // MAX7219 configuration
     uint8_t disp_x;                         // number of display by X axis
     uint8_t disp_y;                         // number of display by Y axis
+    uint8_t disp_reverse;                   // output displays in reverse order
 } aespl_max7219_matrix_config_t;
 
 /**
@@ -31,7 +32,7 @@ typedef struct {
  * @param disp_y   Number of display by Y axis
  */
 esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const aespl_max7219_config_t *m7219cfg,
-                                    uint8_t disp_x, uint8_t disp_y);
+                                    uint8_t disp_x, uint8_t disp_y, uint8_t disp_reverse);
 
 /**
  * @brief Draw a graphics buffer
