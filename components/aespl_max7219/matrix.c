@@ -26,6 +26,7 @@ esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, ae
     esp_err_t err;
     aespl_gfx_buf_array_t *b_arr;
 
+    // Split buffer into chunks
     b_arr = aespl_gfx_split(buf, cfg->disp_x, cfg->disp_y);
     if (b_arr == NULL) {
         return ESP_FAIL;
