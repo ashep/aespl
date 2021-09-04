@@ -52,7 +52,7 @@ int8_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_
 
 aespl_gfx_point_t aespl_gfx_puts(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos,
                                  const char *s, uint32_t color, uint8_t space) {
-    int8_t ch_width = 0;
+    int8_t ch_width;
 
     while (*s) {
         ch_width = aespl_gfx_putc(buf, font, pos, *s++, color);
