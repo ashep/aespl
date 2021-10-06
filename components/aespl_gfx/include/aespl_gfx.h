@@ -18,7 +18,6 @@ typedef enum {
     AESPL_GFX_BAD_CHAR = -4,
 } aespl_gfx_err_t;
 
-
 /**
  * Point.
  */

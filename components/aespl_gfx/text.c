@@ -3,7 +3,7 @@
 
 int8_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, uint8_t ch,
                       uint32_t color) {
-    uint8_t ch_width = 0;
+    int8_t ch_width = 0;
 
     // Check if the character is covered by the font
     if (ch - font->ascii_offset + 1 > font->length) {
@@ -18,11 +18,11 @@ int8_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_
     switch (font->width) {
         case AESPL_GFX_FONT_WIDTH_8:
             ch_p = (uint8_t *) &font->content.c8[offset];
-            ch_width = *(uint8_t *) ch_p++;
+            ch_width = *(int8_t *) ch_p++;
             break;
         case AESPL_GFX_FONT_WIDTH_16:
             ch_p = (uint16_t *) &font->content.c16[offset];
-            ch_width = *(uint16_t *) ch_p++;
+            ch_width = *(int16_t *) ch_p++;
             break;
     }
 
@@ -43,7 +43,9 @@ int8_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_
 
         // Each column
         for (int8_t n = 0, col_n = font->width - 1; n < ch_width; n++, col_n--) {
-            aespl_gfx_set_px(buf, pos.x + n, pos.y + row_n, 1 & (row >> col_n) ? color : 0);
+            if (1 & (row >> col_n)) { // if pixel is set
+                aespl_gfx_set_px(buf, pos.x + n, pos.y + row_n, color);
+            }
         }
     }
 

@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
 #include "aespl_gfx.h"
 #include "aespl_gfx_animation.h"
 

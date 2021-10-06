@@ -136,7 +136,11 @@ void aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t color
 
     switch (buf->c_mode) {
         case AESPL_GFX_C_MODE_MONO:
-            buf->content[y][word_n] |= color << (word_bits - x - 1 % word_bits);
+            if (color == 0) {
+                buf->content[y][word_n] &= ~(1 << (word_bits - x - 1 % word_bits));
+            } else {
+                buf->content[y][word_n] |= 1 << (word_bits - x - 1 % word_bits);
+            }
             break;
 
         case AESPL_GFX_C_MODE_RGB565:
@@ -150,7 +154,7 @@ void aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t color
 }
 
 uint32_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, int16_t x, int16_t y) {
-    // It's okay to set a pixel outside buffer's boundaries
+    // It's okay to get a pixel outside buffer's boundaries
     if (x < 0 || x >= buf->width || y < 0 || y >= buf->height) {
         return 0x0;
     }
