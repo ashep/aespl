@@ -22,14 +22,13 @@ typedef enum {
 /**
  * Animation callback.
  */
-typedef aespl_gfx_anim_state_t (*aespl_gfx_animator_t)(aespl_gfx_buf_t *dst, aespl_gfx_buf_t *src, void *args,
-                                                       uint32_t frame_n);
+typedef aespl_gfx_anim_state_t (*aespl_gfx_animator_t)(void *args, uint32_t frame_n);
 
 /**
  * Animation structure
  */
 typedef struct {
-    aespl_gfx_buf_t *dst;
+    aespl_gfx_buf_t *buf;
     aespl_gfx_buf_t *src;
     aespl_gfx_animator_t animator;
     void *args;
@@ -42,14 +41,12 @@ typedef struct {
 /**
  * @brief Starts animation.
  *
- * @param dst  Destination buffer.
- * @param src  Source buffer.
  * @param fn   Animation callback.
+ * @param args Callback arguments.
  * @param fps  Frames per second.
  *
  * @return Animation state
  */
-aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_buf_t *dst, aespl_gfx_buf_t *src, aespl_gfx_animator_t fn,
-                                         void *args, uint8_t fps);
+aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_animator_t fn, void *args, uint8_t fps);
 
 #endif

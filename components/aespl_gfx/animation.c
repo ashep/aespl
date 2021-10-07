@@ -19,7 +19,7 @@ static void animate_task(void *args) {
         }
 
         if (anim->state == AESPL_GFX_ANIM_CONTINUE) {
-            anim->state = anim->animator(anim->dst, anim->src, anim->args, anim->frame_n++);
+            anim->state = anim->animator(anim->args, anim->frame_n++);
             vTaskDelay(delay);
         }
 
@@ -32,15 +32,12 @@ static void animate_task(void *args) {
     vTaskDelete(NULL);
 }
 
-aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_buf_t *dst, aespl_gfx_buf_t *src, aespl_gfx_animator_t fn,
-                                         void *args, uint8_t fps) {
+aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_animator_t fn, void *args, uint8_t fps) {
     aespl_gfx_animation_t *anim = malloc(sizeof(aespl_gfx_animation_t));
     if (!anim) {
         return NULL;
     }
 
-    anim->dst = dst;
-    anim->src = src;
     anim->animator = fn;
     anim->args = args;
     anim->fps = fps;

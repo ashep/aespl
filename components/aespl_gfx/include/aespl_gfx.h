@@ -22,8 +22,8 @@ typedef enum {
  * Point.
  */
 typedef struct {
-    int16_t x;
-    int16_t y;
+    int32_t x;
+    int32_t y;
 } aespl_gfx_point_t;
 
 #endif
