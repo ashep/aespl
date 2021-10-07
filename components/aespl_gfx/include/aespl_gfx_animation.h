@@ -28,8 +28,6 @@ typedef aespl_gfx_anim_state_t (*aespl_gfx_animator_t)(void *args, uint32_t fram
  * Animation structure
  */
 typedef struct {
-    aespl_gfx_buf_t *buf;
-    aespl_gfx_buf_t *src;
     aespl_gfx_animator_t animator;
     void *args;
     uint8_t fps;

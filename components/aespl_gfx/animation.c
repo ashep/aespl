@@ -8,7 +8,6 @@
 #include "aespl_gfx_animation.h"
 
 static void animate_task(void *args) {
-    aespl_gfx_anim_state_t res = AESPL_GFX_ANIM_CONTINUE;
     aespl_gfx_animation_t *anim = (aespl_gfx_animation_t *) args;
     TickType_t delay = pdMS_TO_TICKS(1000 / anim->fps);
 
