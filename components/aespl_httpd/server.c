@@ -15,7 +15,7 @@
 static char *log_tag = "aespl_http_server";
 
 esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const char *uri,
-                             esp_err_t (*handler)(httpd_req_t *r)) {
+                             esp_err_t (*handler)(httpd_req_t *), void *user_ctx) {
     if (!server->server) {
         ESP_LOGE(log_tag, "server is not started");
         return AESPL_ERR_HTTPD_NOT_STARTED;
@@ -25,6 +25,7 @@ esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const
             .uri = uri,
             .method = method,
             .handler = handler,
+            .user_ctx = user_ctx,
     };
 
     esp_err_t err = httpd_register_uri_handler(server->server, &h);
@@ -38,10 +39,17 @@ esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const
 }
 
 esp_err_t aespl_httpd_send(httpd_req_t *req, const char *status, const char *body) {
-    esp_err_t err = httpd_resp_send(req, body, strlen(body));
+    esp_err_t err;
 
+    err = httpd_resp_set_status(req, status);
     if (err != ESP_OK) {
-        ESP_LOGE(log_tag, "unable to send response");
+        ESP_LOGE(log_tag, "failed to set response status");
+        return err;
+    }
+
+    err = httpd_resp_send(req, body, strlen(body));
+    if (err != ESP_OK) {
+        ESP_LOGE(log_tag, "failed to send response");
         return err;
     } else {
         ESP_LOGI(log_tag, "%s %s %s", http_method_str(req->method), req->uri, status);
@@ -111,7 +119,7 @@ esp_err_t aespl_httpd_stop(aespl_httpd_t *server) {
     return ESP_OK;
 }
 
-esp_err_t aespl_httpd_start(aespl_httpd_t *server, const httpd_config_t *config) {
+esp_err_t aespl_httpd_start(aespl_httpd_t *server, httpd_config_t *config) {
     httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
     cfg.stack_size = 16384;
     cfg.max_uri_handlers = 10;

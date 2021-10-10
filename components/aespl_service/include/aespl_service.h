@@ -5,17 +5,37 @@
  * @copyright MIT License
  */
 
-#ifndef _AESPL_SERVICE_H_
-#define _AESPL_SERVICE_H_
+#ifndef AESPL_SERVICE_H
+#define AESPL_SERVICE_H
 
 #include "esp_err.h"
 #include "aespl_httpd.h"
 
+#ifndef AESPL_SERVICE_LOG_TAG
+#define AESPL_SERVICE_LOG_TAG  "aespl service"
+#endif
+
+#ifndef AESPL_SERVICE_URI_WIFI_STATUS
+#define AESPL_SERVICE_URI_WIFI_STATUS "/wifi"
+#endif
+
+#ifndef AESPL_SERVICE_URI_WIFI_SCAN
+#define AESPL_SERVICE_URI_WIFI_SCAN "/wifi/scan"
+#endif
+
+#ifndef AESPL_SERVICE_URI_WIFI_CONNECT
+#define AESPL_SERVICE_URI_WIFI_CONNECT "/wifi/connect"
+#endif
+
+#ifndef AESPL_SERVICE_URI_WIFI_DISCONNECT
+#define AESPL_SERVICE_URI_WIFI_DISCONNECT "/wifi/disconnect"
+#endif
+
 /**
- * @brief Initialize the CFS
+ * @brief Initialize the service.
  *
  * @param httpd_prefix HTTP URIs prefix
  */
-esp_err_t aespl_service_init(aespl_httpd_t *httpd, const char *httpd_prefix);
+esp_err_t aespl_service_init(aespl_httpd_t *httpd);
 
-#endif  // _AESPL_SERVICE_H_
+#endif  // AESPL_SERVICE_H

@@ -17,7 +17,7 @@
 #define AESPL_ERR_HTTPD_NOT_STARTED (AESPL_ERR_HTTPD_BASE + 0x1)
 
 typedef struct {
-    const httpd_config_t *config;
+    httpd_config_t *config;
     httpd_handle_t server;
 } aespl_httpd_t;
 
@@ -29,7 +29,7 @@ typedef struct {
  * @param handler Request handler
  */
 esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const char *uri,
-                             esp_err_t (*handler)(httpd_req_t *r));
+                             esp_err_t (*handler)(httpd_req_t *r), void *user_ctx);
 
 /**
  * @brief Send a response
@@ -79,6 +79,6 @@ esp_err_t aespl_httpd_stop(aespl_httpd_t *server);
  *
  * @param httpd_config ESP HTTP server config
  */
-esp_err_t aespl_httpd_start(aespl_httpd_t *server, const httpd_config_t *config);
+esp_err_t aespl_httpd_start(aespl_httpd_t *server, httpd_config_t *config);
 
 #endif

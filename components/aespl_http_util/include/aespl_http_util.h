@@ -2,6 +2,7 @@
 #define _AESPL_HTTP_UTIL_
 
 #include "cJSON.h"
+#include "esp_http_server.h"
 
 /**
  * @brief Parses request body JSON
