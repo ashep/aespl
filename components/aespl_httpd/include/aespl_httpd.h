@@ -41,6 +41,16 @@ esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const
 esp_err_t aespl_httpd_send(httpd_req_t *req, const char *status, const char *body);
 
 /**
+ * @brief Send a response using stream as a source of data
+ *
+ * @param req      Request object
+ * @param path     Path to the SPIFFS file
+ * @param type     Content-Type header value
+ * @param encoding Content-Encoding header value
+ */
+esp_err_t aespl_httpd_send_file(httpd_req_t *req, const char *path, const char *type, const char *encoding);
+
+/**
  * @brief Send a JSON response.
  *
  * @param req    Request object
