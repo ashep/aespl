@@ -57,8 +57,12 @@ static esp_err_t httpd_get_wifi_status(httpd_req_t *req) {
     err = esp_wifi_sta_get_ap_info(&ap_info);
 
     if (err != ESP_OK) {
+        if (err == ESP_ERR_WIFI_NOT_CONNECT) {
+            aespl_httpd_send_json_result(req, HTTPD_200, cJSON_CreateFalse());
+            return ESP_OK;
+        }
+
         ESP_LOGW(AESPL_SERVICE_LOG_TAG, "esp_wifi_sta_get_ap_info(): %#x, %s", err, esp_err_to_name(err));
-        aespl_httpd_send_json_result(req, HTTPD_200, cJSON_CreateFalse());
         return err;
     }
 
