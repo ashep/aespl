@@ -10,6 +10,8 @@
 
 #include "driver/gpio.h"
 #include "driver/i2c.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 #define AESPL_DS3231_I2C_ADDR 0x68
 #define AESPL_DS3231_REG_LEN 19
@@ -68,8 +70,9 @@ esp_err_t aespl_ds3231_init(aespl_ds3231_t *ds3231);
 /**
  * @brief Reads data from a device.
  *
- * @warning The `i2c_driver_install()` and `i2c_param_config()` calls is client's responsibility.
- *          See https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-reference/peripherals/i2c.html.
+ * @warning The `i2c_driver_install()` and `i2c_param_config()` calls is
+ * client's responsibility. See
+ * https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-reference/peripherals/i2c.html.
  *
  * @param ds3231  Device configuration
  * @param time    Time structure to write data into
@@ -80,13 +83,15 @@ esp_err_t aespl_ds3231_get_data(aespl_ds3231_t *ds3231, TickType_t timeout);
 /**
  * @brief Stores data into a device.
  *
- * @warning The `i2c_driver_install()` and `i2c_param_config()` calls is client's responsibility.
- *          See https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-reference/peripherals/i2c.html.
+ * @warning The `i2c_driver_install()` and `i2c_param_config()` calls is
+ * client's responsibility. See
+ * https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-reference/peripherals/i2c.html.
  *
  * @param ds3231  Device configuration
  * @param time    Time structure to write data into
  * @param timeout Number of ticks to wait while operation complete
  */
-esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231, TickType_t timeout);
+esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231,
+                                TickType_t timeout);
 
 #endif

@@ -7,7 +7,7 @@
 #ifndef _AESPL_GFX_FONT_1_H_
 #define _AESPL_GFX_FONT_1_H_
 
-#include "aespl_gfx_text.h"
+#include "aespl/gfx_text.h"
 
 static const uint8_t _font_1[] =
         {

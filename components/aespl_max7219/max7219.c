@@ -5,16 +5,18 @@
  * License: MIT
  */
 
-#include "stdbool.h"
-#include "esp_err.h"
-#include "esp8266/eagle_soc.h"
-#include "driver/gpio.h"
-#include "aespl_max7219.h"
+#include "aespl/max7219.h"
 
-esp_err_t aespl_max7219_init(aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_num_t clk, gpio_num_t data,
-                             aespl_max7219_decode_mode_t decode, aespl_max7219_intensity_t intensity,
-                             aespl_max7219_scan_limit_t scan_limit, aespl_max7219_power_mode_t power,
-                             aespl_max_7219_test_mode_t test, uint8_t n_devices) {
+#include "driver/gpio.h"
+#include "esp8266/eagle_soc.h"
+#include "esp_err.h"
+#include "stdbool.h"
+
+esp_err_t aespl_max7219_init(
+    aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_num_t clk, gpio_num_t data,
+    aespl_max7219_decode_mode_t decode, aespl_max7219_intensity_t intensity,
+    aespl_max7219_scan_limit_t scan_limit, aespl_max7219_power_mode_t power,
+    aespl_max_7219_test_mode_t test, uint8_t n_devices) {
     esp_err_t err;
 
     cfg->pin_cs = cs;
@@ -28,11 +30,12 @@ esp_err_t aespl_max7219_init(aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_nu
     cfg->n_devices = n_devices;
 
     gpio_config_t gpio_cfg = {
-            .pin_bit_mask = BIT(cfg->pin_cs) | BIT(cfg->pin_clk) | BIT(cfg->pin_data),
-            .pull_up_en = GPIO_PULLUP_DISABLE,
-            .pull_down_en = GPIO_PULLDOWN_DISABLE,
-            .mode = GPIO_MODE_OUTPUT,
-            .intr_type = GPIO_INTR_DISABLE,
+        .pin_bit_mask =
+            BIT(cfg->pin_cs) | BIT(cfg->pin_clk) | BIT(cfg->pin_data),
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .mode = GPIO_MODE_OUTPUT,
+        .intr_type = GPIO_INTR_DISABLE,
     };
 
     err = gpio_config(&gpio_cfg);
@@ -64,7 +67,9 @@ esp_err_t aespl_max7219_latch(const aespl_max7219_config_t *cfg) {
     return gpio_set_level(cfg->pin_cs, 0);
 }
 
-esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data, bool latch) {
+esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg,
+                             aespl_max7219_addr_t addr, uint8_t data,
+                             bool latch) {
     esp_err_t err;
 
     // Setup pins
@@ -82,7 +87,7 @@ esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_ad
     }
 
     // Prepare data frame
-    uint16_t frame = ((uint16_t) addr) << 8 | data;
+    uint16_t frame = ((uint16_t)addr) << 8 | data;
     for (int8_t i = 15; i >= 0; i--) {
         // Set data
         gpio_set_level(cfg->pin_data, 1 & frame >> i);
@@ -103,7 +108,8 @@ esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_ad
     return ESP_OK;
 }
 
-esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data) {
+esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg,
+                                 aespl_max7219_addr_t addr, uint8_t data) {
     esp_err_t err;
 
     for (uint8_t i = 0; i < cfg->n_devices; i++) {
@@ -116,21 +122,23 @@ esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max721
     return aespl_max7219_latch(cfg);
 }
 
-
 esp_err_t aespl_max7219_refresh(const aespl_max7219_config_t *cfg) {
     esp_err_t err;
 
-    err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_DECODE_MODE, cfg->decode);
+    err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_DECODE_MODE,
+                                 cfg->decode);
     if (err) {
         return err;
     }
 
-    err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_SCAN_LIMIT, cfg->scan_limit);
+    err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_SCAN_LIMIT,
+                                 cfg->scan_limit);
     if (err) {
         return err;
     }
 
-    err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_INTENSITY, cfg->intensity);
+    err = aespl_max7219_send_all(cfg, AESPL_MAX7219_ADDR_INTENSITY,
+                                 cfg->intensity);
     if (err) {
         return err;
     }
@@ -150,7 +158,8 @@ esp_err_t aespl_max7219_refresh(const aespl_max7219_config_t *cfg) {
 
 esp_err_t aespl_max7219_clear(const aespl_max7219_config_t *cfg) {
     esp_err_t err;
-    for (int i = AESPL_MAX7219_ADDR_DIGIT_0; i <= AESPL_MAX7219_ADDR_DIGIT_7; i++) {
+    for (int i = AESPL_MAX7219_ADDR_DIGIT_0; i <= AESPL_MAX7219_ADDR_DIGIT_7;
+         i++) {
         err = aespl_max7219_send_all(cfg, i, 0);
         if (err) {
             return err;

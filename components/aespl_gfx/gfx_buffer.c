@@ -1,12 +1,15 @@
+#include "aespl/gfx_buffer.h"
+
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
-#include "aespl_common.h"
-#include "aespl_gfx_buffer.h"
-#include "aespl_gfx_geometry.h"
 
-aespl_gfx_buf_t *aespl_gfx_make_buf(uint16_t width, uint16_t height, aespl_gfx_c_mode_t c_mode) {
+#include "aespl/gfx_geometry.h"
+#include "aespl/util.h"
+
+aespl_gfx_buf_t *aespl_gfx_make_buf(uint16_t width, uint16_t height,
+                                    aespl_gfx_c_mode_t c_mode) {
     aespl_gfx_buf_t *buf = malloc(sizeof(aespl_gfx_buf_t));
     if (!buf) {
         return NULL;
@@ -67,8 +70,9 @@ void aespl_gfx_free_buf(aespl_gfx_buf_t *buf) {
     free(buf);
 }
 
-aespl_gfx_buf_array_t *
-aespl_gfx_make_buf_array(uint8_t length, uint16_t width, uint16_t height, aespl_gfx_c_mode_t c_mode) {
+aespl_gfx_buf_array_t *aespl_gfx_make_buf_array(uint8_t length, uint16_t width,
+                                                uint16_t height,
+                                                aespl_gfx_c_mode_t c_mode) {
     aespl_gfx_buf_array_t *buf_arr = malloc(sizeof(aespl_gfx_buf_array_t));
     if (!buf_arr) {
         return NULL;
@@ -125,7 +129,8 @@ void aespl_gfx_dump_buf(const aespl_gfx_buf_t *buf) {
     }
 }
 
-void aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t color) {
+void aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y,
+                      uint32_t color) {
     // It's okay to set a pixel outside buffer's boundaries
     if (x < 0 || x >= buf->width || y < 0 || y >= buf->height) {
         return;
@@ -137,7 +142,8 @@ void aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t color
     switch (buf->c_mode) {
         case AESPL_GFX_C_MODE_MONO:
             if (color == 0) {
-                buf->content[y][word_n] &= ~(1 << (word_bits - x - 1 % word_bits));
+                buf->content[y][word_n] &=
+                    ~(1 << (word_bits - x - 1 % word_bits));
             } else {
                 buf->content[y][word_n] |= 1 << (word_bits - x - 1 % word_bits);
             }
@@ -177,29 +183,36 @@ uint32_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, int16_t x, int16_t y) {
     return 0x0;
 }
 
-aespl_gfx_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src, aespl_gfx_point_t dst_pos,
+aespl_gfx_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst,
+                                const aespl_gfx_buf_t *src,
+                                aespl_gfx_point_t dst_pos,
                                 aespl_gfx_point_t src_pos) {
-
-    if (src_pos.x >= src->width || src_pos.y >= src->height || dst_pos.x >= dst->width || dst_pos.y >= dst->height) {
+    if (src_pos.x >= src->width || src_pos.y >= src->height ||
+        dst_pos.x >= dst->width || dst_pos.y >= dst->height) {
         return AESPL_GFX_BAD_ARG;
     }
 
     int16_t dst_x = dst_pos.x;
-    for (int16_t src_x = src_pos.x; src_x < src->width && dst_x < dst->width; src_x++, dst_x++) {
+    for (int16_t src_x = src_pos.x; src_x < src->width && dst_x < dst->width;
+         src_x++, dst_x++) {
         int16_t dst_y = dst_pos.y;
-        for (int16_t src_y = src_pos.y; src_y < src->height && dst_y < dst->height; src_y++, dst_y++) {
-            aespl_gfx_set_px(dst, dst_x, dst_y, aespl_gfx_get_px(src, src_x, src_y));
+        for (int16_t src_y = src_pos.y;
+             src_y < src->height && dst_y < dst->height; src_y++, dst_y++) {
+            aespl_gfx_set_px(dst, dst_x, dst_y,
+                             aespl_gfx_get_px(src, src_x, src_y));
         }
     }
 
     return AESPL_GFX_OK;
 }
 
-aespl_gfx_buf_array_t *aespl_gfx_split(const aespl_gfx_buf_t *src, uint8_t num_x, uint8_t num_y) {
+aespl_gfx_buf_array_t *aespl_gfx_split(const aespl_gfx_buf_t *src,
+                                       uint8_t num_x, uint8_t num_y) {
     uint16_t dst_width = src->width / num_x;
     uint16_t dst_height = src->height / num_y;
 
-    aespl_gfx_buf_array_t *dst = aespl_gfx_make_buf_array(num_x * num_y, dst_width, dst_height, src->c_mode);
+    aespl_gfx_buf_array_t *dst = aespl_gfx_make_buf_array(
+        num_x * num_y, dst_width, dst_height, src->c_mode);
     if (!dst) {
         return NULL;
     }
@@ -208,7 +221,8 @@ aespl_gfx_buf_array_t *aespl_gfx_split(const aespl_gfx_buf_t *src, uint8_t num_x
     for (uint8_t n_y = 0; n_y < num_y; n_y++) {
         for (uint8_t n_x = 0; n_x < num_x; n_x++) {
             aespl_gfx_point_t src_pos = {n_x * dst_width, n_y * dst_height};
-            if (aespl_gfx_merge(dst->buffers[i], src, (aespl_gfx_point_t) {0, 0}, src_pos) != AESPL_GFX_OK) {
+            if (aespl_gfx_merge(dst->buffers[i], src, (aespl_gfx_point_t){0, 0},
+                                src_pos) != AESPL_GFX_OK) {
                 aespl_gfx_free_buf_array(dst);
                 return NULL;
             }
@@ -221,19 +235,21 @@ aespl_gfx_buf_array_t *aespl_gfx_split(const aespl_gfx_buf_t *src, uint8_t num_x
 
 aespl_gfx_err_t aespl_gfx_move(aespl_gfx_buf_t *buf, aespl_gfx_point_t pos) {
     aespl_gfx_err_t err;
-    aespl_gfx_buf_t *tmp_buf = aespl_gfx_make_buf(buf->width, buf->height, buf->c_mode);
+    aespl_gfx_buf_t *tmp_buf =
+        aespl_gfx_make_buf(buf->width, buf->height, buf->c_mode);
     if (!tmp_buf) {
         return AESPL_GFX_FAIL;
     }
 
-    err = aespl_gfx_merge(tmp_buf, buf, pos, (aespl_gfx_point_t) {0, 0});
+    err = aespl_gfx_merge(tmp_buf, buf, pos, (aespl_gfx_point_t){0, 0});
     if (err) {
         return err;
     }
 
     aespl_gfx_clear_buf(buf);
 
-    err = aespl_gfx_merge(buf, tmp_buf, (aespl_gfx_point_t) {0, 0}, (aespl_gfx_point_t) {0, 0});
+    err = aespl_gfx_merge(buf, tmp_buf, (aespl_gfx_point_t){0, 0},
+                          (aespl_gfx_point_t){0, 0});
     if (err) {
         return err;
     }

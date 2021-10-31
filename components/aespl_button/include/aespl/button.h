@@ -13,10 +13,9 @@
 #include <stdbool.h>
 #include <sys/time.h>
 
+#include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
-
-#include "driver/gpio.h"
 
 /**
  * Delay after which a button considered as long-pressed
@@ -45,8 +44,8 @@
 typedef bool (*aespl_button_callback)(void *args);
 
 /**
- * Button connection type: means where the GPIO pin is connected after button is pressed:
- *   AESPL_BUTTON_PRESS_HI -- GPIO will be connected to VCC
+ * Button connection type: means where the GPIO pin is connected after button is
+ * pressed: AESPL_BUTTON_PRESS_HI -- GPIO will be connected to VCC
  *   AESPL_BUTTON_PRESS_LOW -- GPIO will be connected to GND
  */
 typedef enum {
@@ -83,7 +82,8 @@ typedef struct {
  * @param conn_type      Button connection type
  * @param l_press_repeat Whether long press event should be repeated
  */
-esp_err_t aespl_button_init(aespl_button_t *btn, gpio_num_t pin, aespl_button_conn_type_t conn_type,
+esp_err_t aespl_button_init(aespl_button_t *btn, gpio_num_t pin,
+                            aespl_button_conn_type_t conn_type,
                             bool l_press_repeat);
 
 /**
@@ -92,7 +92,8 @@ esp_err_t aespl_button_init(aespl_button_t *btn, gpio_num_t pin, aespl_button_co
  * @param btn     Button's configuration
  * @param handler Callback function
  */
-esp_err_t aespl_button_on_press(aespl_button_t *btn, aespl_button_callback handler, void *args);
+esp_err_t aespl_button_on_press(aespl_button_t *btn,
+                                aespl_button_callback handler, void *args);
 
 /**
  * @brief Register button's long press callback
@@ -100,7 +101,8 @@ esp_err_t aespl_button_on_press(aespl_button_t *btn, aespl_button_callback handl
  * @param btn     Button's configuration
  * @param handler Callback function
  */
-esp_err_t aespl_button_on_l_press(aespl_button_t *btn, aespl_button_callback handler, void *args);
+esp_err_t aespl_button_on_l_press(aespl_button_t *btn,
+                                  aespl_button_callback handler, void *args);
 
 /**
  * @brief Register button's release callback
@@ -108,6 +110,7 @@ esp_err_t aespl_button_on_l_press(aespl_button_t *btn, aespl_button_callback han
  * @param btn     Button's configuration
  * @param handler Callback function
  */
-esp_err_t aespl_button_on_release(aespl_button_t *btn, aespl_button_callback handler, void *args);
+esp_err_t aespl_button_on_release(aespl_button_t *btn,
+                                  aespl_button_callback handler, void *args);
 
 #endif

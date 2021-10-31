@@ -8,7 +8,8 @@
 #define _AESPL_GFX_TEXT_H_
 
 #include <stdio.h>
-#include "aespl_gfx_buffer.h"
+
+#include "aespl/gfx_buffer.h"
 
 /**
  * Font widths.
@@ -22,8 +23,8 @@ typedef enum {
  * Font.
  */
 typedef struct {
-    uint8_t ascii_offset;          // char code offset relative to ASCII table
-    uint8_t length;                // number of covered ASCII codes staring from ascii_offset
+    uint8_t ascii_offset;  // char code offset relative to ASCII table
+    uint8_t length;  // number of covered ASCII codes staring from ascii_offset
     aespl_gfx_font_width_t width;  // number of bits per row
     uint8_t height;                // number of rows per character
     union {
@@ -43,8 +44,8 @@ typedef struct {
  *
  * @return Width of drawn character or `aespl_gfx_err_t` in case of error.
  */
-int8_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos, uint8_t ch,
-                      uint32_t color);
+int8_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font,
+                      aespl_gfx_point_t pos, uint8_t ch, uint32_t color);
 
 /**
  * @brief Draws a string.
@@ -58,8 +59,10 @@ int8_t aespl_gfx_putc(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_
  *
  * @return Position of the end of the drawn string
  */
-aespl_gfx_point_t aespl_gfx_puts(aespl_gfx_buf_t *buf, const aespl_gfx_font_t *font, aespl_gfx_point_t pos,
-                                 const char *s, uint32_t color, uint8_t space);
+aespl_gfx_point_t aespl_gfx_puts(aespl_gfx_buf_t *buf,
+                                 const aespl_gfx_font_t *font,
+                                 aespl_gfx_point_t pos, const char *s,
+                                 uint32_t color, uint8_t space);
 
 /**
  * @brief Returns width of a character.
@@ -80,7 +83,8 @@ int8_t aespl_gfx_ch_width(const aespl_gfx_font_t *font, char ch);
  *
  * @return String's width or `aespl_gfx_err_t` in case of error.
  */
-int16_t aespl_gfx_str_width(const aespl_gfx_font_t *font, const char *str, uint8_t space);
+int16_t aespl_gfx_str_width(const aespl_gfx_font_t *font, const char *str,
+                            uint8_t space);
 
 /**
  * @brief Creates a graphics buffer and put a string into it.
@@ -93,7 +97,9 @@ int16_t aespl_gfx_str_width(const aespl_gfx_font_t *font, const char *str, uint8
  *
  * @return Buffer or NULL in case of error
  */
-aespl_gfx_buf_t *aespl_gfx_make_str_buf(aespl_gfx_c_mode_t c_mode, const aespl_gfx_font_t *font, const char *str,
-                                        uint32_t color, uint8_t space);
+aespl_gfx_buf_t *aespl_gfx_make_str_buf(aespl_gfx_c_mode_t c_mode,
+                                        const aespl_gfx_font_t *font,
+                                        const char *str, uint32_t color,
+                                        uint8_t space);
 
 #endif

@@ -8,9 +8,9 @@
 #define _AESPL_GFX_GEOMETRY_H_
 
 #include <stdio.h>
-#include "aespl_gfx.h"
-#include "aespl_gfx_buffer.h"
 
+#include "aespl/gfx.h"
+#include "aespl/gfx_buffer.h"
 
 /**
  * Line.
@@ -35,7 +35,8 @@ typedef struct {
  * @param line   Line.
  * @param color  Color.
  */
-void aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uint32_t color);
+void aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line,
+                    uint32_t color);
 
 /**
  * @brief Draws a polygon.
@@ -44,7 +45,8 @@ void aespl_gfx_line(aespl_gfx_buf_t *buf, const aespl_gfx_line_t *line, uint32_t
  * @param poly   Points.
  * @param color  Color.
  */
-void aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uint32_t color);
+void aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly,
+                    uint32_t color);
 
 /**
  * @brief Draws a rectangle.
@@ -54,7 +56,8 @@ void aespl_gfx_poly(aespl_gfx_buf_t *buf, const aespl_gfx_poly_t *poly, uint32_t
  * @param p2     Bottom right point.
  * @param color  Color.
  */
-void aespl_gfx_rect(aespl_gfx_buf_t *buf, aespl_gfx_point_t p1, aespl_gfx_point_t p2, uint32_t color);
+void aespl_gfx_rect(aespl_gfx_buf_t *buf, aespl_gfx_point_t p1,
+                    aespl_gfx_point_t p2, uint32_t color);
 
 /**
  * @brief Draws a triangle.
@@ -65,7 +68,8 @@ void aespl_gfx_rect(aespl_gfx_buf_t *buf, aespl_gfx_point_t p1, aespl_gfx_point_
  * @param p3     Point 3.
  * @param color  Color.
  */
-void aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1, const aespl_gfx_point_t p2,
-                   const aespl_gfx_point_t p3, uint32_t color);
+void aespl_gfx_tri(aespl_gfx_buf_t *buf, const aespl_gfx_point_t p1,
+                   const aespl_gfx_point_t p2, const aespl_gfx_point_t p3,
+                   uint32_t color);
 
 #endif

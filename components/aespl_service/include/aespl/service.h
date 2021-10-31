@@ -8,11 +8,11 @@
 #ifndef AESPL_SERVICE_H
 #define AESPL_SERVICE_H
 
+#include "aespl/httpd.h"
 #include "esp_err.h"
-#include "aespl_httpd.h"
 
 #ifndef AESPL_SERVICE_LOG_TAG
-#define AESPL_SERVICE_LOG_TAG  "aespl service"
+#define AESPL_SERVICE_LOG_TAG "aespl service"
 #endif
 
 #ifndef AESPL_SERVICE_URI_WIFI_STATUS

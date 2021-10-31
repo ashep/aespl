@@ -11,7 +11,7 @@
 #include "cJSON.h"
 #include "esp_err.h"
 #include "esp_http_server.h"
-#include "aespl_common.h"
+#include "aespl/util.h"
 
 #define AESPL_ERR_HTTPD_BASE (AESPL_ERR_BASE + 0x0200)
 #define AESPL_ERR_HTTPD_NOT_STARTED (AESPL_ERR_HTTPD_BASE + 0x1)

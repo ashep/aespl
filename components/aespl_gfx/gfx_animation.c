@@ -1,14 +1,14 @@
-#include <stdio.h>
-#include <stdbool.h>
+#include "aespl/gfx_animation.h"
 
+#include <stdbool.h>
+#include <stdio.h>
+
+#include "aespl/gfx.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "aespl_gfx.h"
-#include "aespl_gfx_animation.h"
-
 static void animate_task(void *args) {
-    aespl_gfx_animation_t *anim = (aespl_gfx_animation_t *) args;
+    aespl_gfx_animation_t *anim = (aespl_gfx_animation_t *)args;
     TickType_t delay = pdMS_TO_TICKS(1000 / anim->fps);
 
     for (;;) {
@@ -31,7 +31,8 @@ static void animate_task(void *args) {
     vTaskDelete(NULL);
 }
 
-aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_animator_t fn, void *args, uint8_t fps) {
+aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_animator_t fn, void *args,
+                                         uint8_t fps) {
     aespl_gfx_animation_t *anim = malloc(sizeof(aespl_gfx_animation_t));
     if (!anim) {
         return NULL;
@@ -43,7 +44,7 @@ aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_animator_t fn, void *args, ui
     anim->frame_n = 0;
     anim->state = AESPL_GFX_ANIM_CONTINUE;
 
-    xTaskCreate(animate_task, "animation", 4096, (void *) anim, 0, NULL);
+    xTaskCreate(animate_task, "animation", 4096, (void *)anim, 0, NULL);
 
     return anim;
 }

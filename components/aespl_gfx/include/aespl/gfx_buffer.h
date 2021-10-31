@@ -8,8 +8,9 @@
 #define _AESPL_GFX_BUFFER_H_
 
 #include <stdint.h>
-#include "aespl_gfx.h"
-#include "aespl_gfx_color.h"
+
+#include "aespl/gfx.h"
+#include "aespl/gfx_color.h"
 
 /**
  * Buffer.
@@ -41,7 +42,8 @@ typedef struct {
  *
  * @return Allocated buffer or NULL in case of error.
  */
-aespl_gfx_buf_t *aespl_gfx_make_buf(uint16_t width, uint16_t height, aespl_gfx_c_mode_t c_mode);
+aespl_gfx_buf_t *aespl_gfx_make_buf(uint16_t width, uint16_t height,
+                                    aespl_gfx_c_mode_t c_mode);
 
 /**
  * @brief Frees resources allocated by `aespl_gfx_make_buf()`.
@@ -60,7 +62,8 @@ void aespl_gfx_free_buf(aespl_gfx_buf_t *buf);
  *
  * @returns Buffers array or NULL in case of error
  */
-aespl_gfx_buf_array_t *aespl_gfx_make_buf_array(uint8_t length, uint16_t width, uint16_t height,
+aespl_gfx_buf_array_t *aespl_gfx_make_buf_array(uint8_t length, uint16_t width,
+                                                uint16_t height,
                                                 aespl_gfx_c_mode_t c_mode);
 
 /**
@@ -92,7 +95,8 @@ void aespl_gfx_dump_buf(const aespl_gfx_buf_t *buf);
  * @param y      Y position.
  * @param color  Color value.
  */
-void aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y, uint32_t color);
+void aespl_gfx_set_px(aespl_gfx_buf_t *buf, int16_t x, int16_t y,
+                      uint32_t color);
 
 /**
  * @brief Gets buffer pixel's value.
@@ -115,8 +119,10 @@ uint32_t aespl_gfx_get_px(const aespl_gfx_buf_t *buf, int16_t x, int16_t y);
  *
  * @return Result of the operation
  */
-aespl_gfx_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src,
-                                aespl_gfx_point_t dst_pos, aespl_gfx_point_t src_pos);
+aespl_gfx_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst,
+                                const aespl_gfx_buf_t *src,
+                                aespl_gfx_point_t dst_pos,
+                                aespl_gfx_point_t src_pos);
 
 /**
  * @brief Splits a buffer,
@@ -127,7 +133,8 @@ aespl_gfx_err_t aespl_gfx_merge(aespl_gfx_buf_t *dst, const aespl_gfx_buf_t *src
  *
  * @return Buffers array or NULL in case of error.
  */
-aespl_gfx_buf_array_t *aespl_gfx_split(const aespl_gfx_buf_t *src, uint8_t num_x, uint8_t num_y);
+aespl_gfx_buf_array_t *aespl_gfx_split(const aespl_gfx_buf_t *src,
+                                       uint8_t num_x, uint8_t num_y);
 
 /**
  * @brief Moves buffer's content to a new position.

@@ -1,5 +1,5 @@
 idf_component_register(
-        SRCS "buffer.c" "geometry.c" "text.c" "animation.c" "color.c"
+        SRCS "gfx_buffer.c" "gfx_geometry.c" "gfx_text.c" "gfx_animation.c" "gfx_color.c"
         INCLUDE_DIRS "include"
-        REQUIRES "aespl_common"
+        REQUIRES "aespl_util"
 )

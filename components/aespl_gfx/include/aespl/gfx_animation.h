@@ -8,7 +8,8 @@
 #define _AESPL_GFX_ANIMATION_H_
 
 #include <stdio.h>
-#include "aespl_gfx_buffer.h"
+
+#include "aespl/gfx_buffer.h"
 
 /**
  * Animation states
@@ -22,7 +23,8 @@ typedef enum {
 /**
  * Animation callback.
  */
-typedef aespl_gfx_anim_state_t (*aespl_gfx_animator_t)(void *args, uint32_t frame_n);
+typedef aespl_gfx_anim_state_t (*aespl_gfx_animator_t)(void *args,
+                                                       uint32_t frame_n);
 
 /**
  * Animation structure
@@ -45,6 +47,7 @@ typedef struct {
  *
  * @return Animation state
  */
-aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_animator_t fn, void *args, uint8_t fps);
+aespl_gfx_animation_t *aespl_gfx_animate(aespl_gfx_animator_t fn, void *args,
+                                         uint8_t fps);
 
 #endif

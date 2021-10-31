@@ -5,15 +5,14 @@
  * @copyright MIT License
  */
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
+#include "aespl/ds3231.h"
 
+#include "aespl/i2c.h"
+#include "aespl/util.h"
 #include "esp_err.h"
 #include "esp_log.h"
-
-#include "aespl_i2c.h"
-#include "aespl_ds3231.h"
-#include "aespl_common.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 esp_err_t aespl_ds3231_init(aespl_ds3231_t *ds3231) {
     ds3231->mux = xSemaphoreCreateBinary();
@@ -37,7 +36,8 @@ esp_err_t aespl_ds3231_get_data(aespl_ds3231_t *ds3231, TickType_t timeout) {
         return ESP_FAIL;
     }
 
-    err = aespl_i2c_read(AESPL_DS3231_I2C_ADDR, AESPL_DS3231_REG_SECONDS, buf, AESPL_DS3231_REG_LEN, timeout);
+    err = aespl_i2c_read(AESPL_DS3231_I2C_ADDR, AESPL_DS3231_REG_SECONDS, buf,
+                         AESPL_DS3231_REG_LEN, timeout);
     if (err) {
         xSemaphoreGive(ds3231->mux);
         return err;
@@ -50,15 +50,18 @@ esp_err_t aespl_ds3231_get_data(aespl_ds3231_t *ds3231, TickType_t timeout) {
     ds3231->min = (buf[1] >> 4) * 10 + (0x0f & buf[1]);
 
     // Hour
-    ds3231->time_12 = buf[2] >> 6; // 6th bit is 12-hour mode flag
+    ds3231->time_12 = buf[2] >> 6;  // 6th bit is 12-hour mode flag
     if (ds3231->time_12) {
-        ds3231->time_pm = (0x20 & buf[2]) >> 5;       // 5th bit is AM/PM flag
-        ds3231->hour = ((0x10 & buf[2]) >> 4) * 10;  // 4th bit is 10-hours counter
-        ds3231->hour += 0x0f & buf[2];                // bits 0-3 are 1-hour counter
+        ds3231->time_pm = (0x20 & buf[2]) >> 5;  // 5th bit is AM/PM flag
+        ds3231->hour =
+            ((0x10 & buf[2]) >> 4) * 10;  // 4th bit is 10-hours counter
+        ds3231->hour += 0x0f & buf[2];    // bits 0-3 are 1-hour counter
     } else {
-        ds3231->hour = ((0x20 & buf[2]) >> 5) * 20;   // 5th bit is 20-hours counter
-        ds3231->hour += ((0x10 & buf[2]) >> 4) * 10;  // 4th bit is 10-hours counter
-        ds3231->hour += 0x0f & buf[2];                // bits 0-3 are 1-hour counter
+        ds3231->hour =
+            ((0x20 & buf[2]) >> 5) * 20;  // 5th bit is 20-hours counter
+        ds3231->hour +=
+            ((0x10 & buf[2]) >> 4) * 10;  // 4th bit is 10-hours counter
+        ds3231->hour += 0x0f & buf[2];    // bits 0-3 are 1-hour counter
     }
 
     // Day of the week
@@ -83,21 +86,27 @@ esp_err_t aespl_ds3231_get_data(aespl_ds3231_t *ds3231, TickType_t timeout) {
     ds3231->alarm_1_min = ((buf[8] >> 4) & 0x47) * 10 + (buf[8] & 0x0f);
 
     // Alarm 1, hour
-    ds3231->alarm_1_12 = (buf[9] >> 6) & 0x1; // 6th bit is 12-hour mode flag
+    ds3231->alarm_1_12 = (buf[9] >> 6) & 0x1;  // 6th bit is 12-hour mode flag
     if (ds3231->alarm_1_12) {
-        ds3231->alarm_1_pm = (buf[9] >> 5) & 0x1;    // 5th bit is AM/PM flag
-        ds3231->alarm_1_hour = ((buf[9] >> 4) & 0x1) * 10;   // 4th bit is 10-hours counter
-        ds3231->alarm_1_hour += 0x0f & buf[9];               // bits 0-3 are 1-hour counter
+        ds3231->alarm_1_pm = (buf[9] >> 5) & 0x1;  // 5th bit is AM/PM flag
+        ds3231->alarm_1_hour =
+            ((buf[9] >> 4) & 0x1) * 10;         // 4th bit is 10-hours counter
+        ds3231->alarm_1_hour += 0x0f & buf[9];  // bits 0-3 are 1-hour counter
     } else {
-        ds3231->alarm_1_hour = ((0x20 & buf[9]) >> 5) * 20;   // 5th bit is 20-hours counter
-        ds3231->alarm_1_hour += ((0x10 & buf[9]) >> 4) * 10;  // 4th bit is 10-hours counter
-        ds3231->alarm_1_hour += 0x0f & buf[9];                // bits 0-3 are 1-hour counter
+        ds3231->alarm_1_hour =
+            ((0x20 & buf[9]) >> 5) * 20;  // 5th bit is 20-hours counter
+        ds3231->alarm_1_hour +=
+            ((0x10 & buf[9]) >> 4) * 10;        // 4th bit is 10-hours counter
+        ds3231->alarm_1_hour += 0x0f & buf[9];  // bits 0-3 are 1-hour counter
     }
 
     // Temperature
-    ds3231->temp = 0x7f & buf[17];          // bits 6-0 of the byte 17 are integer part without sign
-    ds3231->temp += (buf[18] >> 6) * 0.25;  // bits 7-6 of the byte 18 are fractional 0.25-part
-    if (buf[17] >> 7) {                     // 7th bit of 17th byte is the sign
+    ds3231->temp =
+        0x7f &
+        buf[17];  // bits 6-0 of the byte 17 are integer part without sign
+    ds3231->temp += (buf[18] >> 6) *
+                    0.25;  // bits 7-6 of the byte 18 are fractional 0.25-part
+    if (buf[17] >> 7) {    // 7th bit of 17th byte is the sign
         ds3231->temp *= -1;
     }
 
@@ -109,7 +118,8 @@ esp_err_t aespl_ds3231_get_data(aespl_ds3231_t *ds3231, TickType_t timeout) {
     return ESP_OK;
 }
 
-esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231, TickType_t timeout) {
+esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231,
+                                TickType_t timeout) {
     esp_err_t err;
     uint8_t buf[AESPL_DS3231_REG_LEN];
 
@@ -127,9 +137,11 @@ esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231, TickType_t timeout
     // Hour
     buf[2] = ds3231->time_12 << 6;
     if (ds3231->time_12) {
-        buf[2] |= (ds3231->time_pm << 5) | ((ds3231->hour / 10) << 4) | (ds3231->hour % 10);
+        buf[2] |= (ds3231->time_pm << 5) | ((ds3231->hour / 10) << 4) |
+                  (ds3231->hour % 10);
     } else {
-        buf[2] |= ((ds3231->hour / 20) << 5) | ((ds3231->hour / 10) << 4) | (ds3231->hour % 10);
+        buf[2] |= ((ds3231->hour / 20) << 5) | ((ds3231->hour / 10) << 4) |
+                  (ds3231->hour % 10);
     }
 
     // Day of the week
@@ -153,13 +165,18 @@ esp_err_t aespl_ds3231_set_data(const aespl_ds3231_t *ds3231, TickType_t timeout
     // Alarm 1, hour
     buf[9] = ds3231->alarm_1_12 << 6;
     if (ds3231->alarm_1_12) {
-        buf[9] |= (ds3231->alarm_1_pm << 5) | ((ds3231->alarm_1_hour / 10) << 4) | (ds3231->alarm_1_hour % 10);
+        buf[9] |= (ds3231->alarm_1_pm << 5) |
+                  ((ds3231->alarm_1_hour / 10) << 4) |
+                  (ds3231->alarm_1_hour % 10);
     } else {
-        buf[9] |= ((ds3231->alarm_1_hour / 20) << 5) | ((ds3231->alarm_1_hour / 10) << 4) | (ds3231->alarm_1_hour % 10);
+        buf[9] |= ((ds3231->alarm_1_hour / 20) << 5) |
+                  ((ds3231->alarm_1_hour / 10) << 4) |
+                  (ds3231->alarm_1_hour % 10);
     }
 
     // Send data to the device
-    err = aespl_i2c_write(AESPL_DS3231_I2C_ADDR, AESPL_DS3231_REG_SECONDS, buf, 10, timeout);
+    err = aespl_i2c_write(AESPL_DS3231_I2C_ADDR, AESPL_DS3231_REG_SECONDS, buf,
+                          10, timeout);
     if (err) {
         xSemaphoreGive(ds3231->mux);
         return err;

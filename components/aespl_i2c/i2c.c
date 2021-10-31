@@ -5,12 +5,13 @@
  * @copyright MIT License
  */
 
-#include "freertos/portmacro.h"
-#include "esp_err.h"
 #include "driver/i2c.h"
 
+#include "esp_err.h"
+#include "freertos/portmacro.h"
 
-esp_err_t aespl_i2c_read(uint8_t dev, uint8_t reg, uint8_t *data, uint8_t len, TickType_t timeout) {
+esp_err_t aespl_i2c_read(uint8_t dev, uint8_t reg, uint8_t *data, uint8_t len,
+                         TickType_t timeout) {
     esp_err_t err;
 
     // Create a command link
@@ -60,7 +61,8 @@ esp_err_t aespl_i2c_read(uint8_t dev, uint8_t reg, uint8_t *data, uint8_t len, T
 
     // Read `len` bytes
     for (uint8_t i = 0; i < len; i++) {
-        err = i2c_master_read_byte(cmd, data++, i + 1 != len ? I2C_MASTER_ACK : I2C_MASTER_LAST_NACK);
+        err = i2c_master_read_byte(
+            cmd, data++, i + 1 != len ? I2C_MASTER_ACK : I2C_MASTER_LAST_NACK);
         if (err) {
             i2c_cmd_link_delete(cmd);
             return err;
@@ -87,7 +89,8 @@ esp_err_t aespl_i2c_read(uint8_t dev, uint8_t reg, uint8_t *data, uint8_t len, T
     return ESP_OK;
 }
 
-esp_err_t aespl_i2c_write(uint8_t dev, uint8_t reg, const uint8_t *data, uint8_t len, TickType_t timeout) {
+esp_err_t aespl_i2c_write(uint8_t dev, uint8_t reg, const uint8_t *data,
+                          uint8_t len, TickType_t timeout) {
     esp_err_t err;
 
     // Create a command link

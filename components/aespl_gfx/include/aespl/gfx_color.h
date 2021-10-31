@@ -8,6 +8,8 @@
 #ifndef _AESPL_GFX_COLOR_H_
 #define _AESPL_GFX_COLOR_H_
 
+#include <stdio.h>
+
 /**
  * Color modes.
  */
