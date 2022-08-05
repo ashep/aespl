@@ -160,7 +160,7 @@ esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg,
  * periodically send configuration data to the device to refresh its registers
  * with proper values. Use this function in periodic call, for example one time
  * per minute or rarely, which depends on particular schematic and amount of
- *        noise from your PSU or other sources.
+ * noise from your PSU or other sources.
  *
  * @param cfg  Configuration
  * @return     Error code

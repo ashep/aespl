@@ -30,8 +30,7 @@ esp_err_t aespl_max7219_init(
     cfg->n_devices = n_devices;
 
     gpio_config_t gpio_cfg = {
-        .pin_bit_mask =
-            BIT(cfg->pin_cs) | BIT(cfg->pin_clk) | BIT(cfg->pin_data),
+        .pin_bit_mask = BIT(cfg->pin_cs) | BIT(cfg->pin_clk) | BIT(cfg->pin_data),
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .mode = GPIO_MODE_OUTPUT,

@@ -25,8 +25,7 @@ esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg,
     return ESP_OK;
 }
 
-esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg,
-                                    aespl_gfx_buf_t *buf) {
+esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, aespl_gfx_buf_t *buf) {
     esp_err_t err;
     aespl_gfx_buf_array_t *b_arr;
 
