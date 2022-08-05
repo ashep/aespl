@@ -32,6 +32,11 @@ esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const
                              esp_err_t (*handler)(httpd_req_t *r));
 
 /**
+ *
+ */
+esp_err_t aespl_httpd_handle_spiffs(aespl_httpd_t *server);
+
+/**
  * @brief Send a response
  *
  * @param req    Request object

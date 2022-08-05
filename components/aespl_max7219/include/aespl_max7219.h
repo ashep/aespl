@@ -102,7 +102,7 @@ typedef struct {
     gpio_num_t pin_data;
     uint8_t n_displays;
     aespl_max7219_decode_mode_t decode;
-} aespl_max7219_config_t;
+} aespl_max7219_t;
 
 /**
  * @brief Initialize an MCU to work with MAX7219
@@ -112,7 +112,7 @@ typedef struct {
  *     - ESP_OK
  *     - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_max7219_init(aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_num_t clk, gpio_num_t data,
+esp_err_t aespl_max7219_init(aespl_max7219_t *cfg, gpio_num_t cs, gpio_num_t clk, gpio_num_t data,
                              uint8_t n_displays, aespl_max7219_decode_mode_t decode);
 
 /**
@@ -123,7 +123,7 @@ esp_err_t aespl_max7219_init(aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_nu
  *     - ESP_OK
  *     - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_max7219_latch(const aespl_max7219_config_t *cfg);
+esp_err_t aespl_max7219_latch(const aespl_max7219_t *cfg);
 
 /**
  * @brief Send a command to single device
@@ -136,7 +136,7 @@ esp_err_t aespl_max7219_latch(const aespl_max7219_config_t *cfg);
  *     - ESP_OK
  *     - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data, bool latch);
+esp_err_t aespl_max7219_send(const aespl_max7219_t *cfg, aespl_max7219_addr_t addr, uint8_t data, bool latch);
 
 /**
  * @brief Send a command to all devices
@@ -148,7 +148,7 @@ esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_ad
  *     - ESP_OK
  *     - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data);
+esp_err_t aespl_max7219_send_all(const aespl_max7219_t *cfg, aespl_max7219_addr_t addr, uint8_t data);
 
 /**
  * @brief Clear digits of all devices
@@ -158,6 +158,6 @@ esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max721
  *     - ESP_OK
  *     - ESP_ERR_INVALID_ARG
  */
-esp_err_t aespl_max7219_clear(const aespl_max7219_config_t *cfg);
+esp_err_t aespl_max7219_clear(const aespl_max7219_t *cfg);
 
 #endif

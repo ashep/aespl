@@ -9,17 +9,17 @@
 #define _AESPL_MAX7219_MATRIX_H_
 
 #include "driver/gpio.h"
-#include "agfxl.h"
+#include "agfxl_buffer.h"
 #include "aespl_max7219.h"
 
 /**
  * MAX7219 matrix configuration structure
  */
 typedef struct {
-    const aespl_max7219_config_t *max7219;  // MAX7219 configuration
+    const aespl_max7219_t *max7219;  // MAX7219 configuration
     uint8_t disp_x;                         // number of display by X axis
     uint8_t disp_y;                         // number of display by Y axis
-} aespl_max7219_matrix_config_t;
+} aespl_max7219_matrix_t;
 
 /**
  * @brief Initialize MAX7219 matrix device(s)
@@ -29,7 +29,7 @@ typedef struct {
  * @param disp_x   Number of display by X axis
  * @param disp_y   Number of display by Y axis
  */
-esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const aespl_max7219_config_t *m7219cfg,
+esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_t *cfg, const aespl_max7219_t *m7219cfg,
                                     uint8_t disp_x, uint8_t disp_y);
 
 /**
@@ -40,6 +40,6 @@ esp_err_t aespl_max7219_matrix_init(aespl_max7219_matrix_config_t *cfg, const ae
  *
  * @param cfg Configuration
  */
-esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_config_t *cfg, agfxl_buf_t *buf);
+esp_err_t aespl_max7219_matrix_draw(const aespl_max7219_matrix_t *cfg, const agfxl_buf_t *buf);
 
 #endif

@@ -34,7 +34,7 @@
  * Upper switch debounce threshold
  */
 #ifndef AESPL_BUTTON_DEBOUNCE_MS
-#define AESPL_BUTTON_DEBOUNCE_MS 200
+#define AESPL_BUTTON_DEBOUNCE_MS 350
 #endif
 
 /**

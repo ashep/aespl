@@ -16,7 +16,7 @@
 #include "driver/gpio.h"
 #include "aespl_max7219.h"
 
-esp_err_t aespl_max7219_init(aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_num_t clk, gpio_num_t data,
+esp_err_t aespl_max7219_init(aespl_max7219_t *cfg, gpio_num_t cs, gpio_num_t clk, gpio_num_t data,
                              uint8_t n_displays, aespl_max7219_decode_mode_t decode) {
     esp_err_t err;
 
@@ -78,7 +78,7 @@ esp_err_t aespl_max7219_init(aespl_max7219_config_t *cfg, gpio_num_t cs, gpio_nu
     return ESP_OK;
 }
 
-esp_err_t aespl_max7219_latch(const aespl_max7219_config_t *cfg) {
+esp_err_t aespl_max7219_latch(const aespl_max7219_t *cfg) {
     esp_err_t err;
 
     err = gpio_set_level(cfg->pin_cs, 1);
@@ -89,7 +89,7 @@ esp_err_t aespl_max7219_latch(const aespl_max7219_config_t *cfg) {
     return gpio_set_level(cfg->pin_cs, 0);
 }
 
-esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data, bool latch) {
+esp_err_t aespl_max7219_send(const aespl_max7219_t *cfg, aespl_max7219_addr_t addr, uint8_t data, bool latch) {
     esp_err_t err;
 
     // Setup pins
@@ -128,7 +128,7 @@ esp_err_t aespl_max7219_send(const aespl_max7219_config_t *cfg, aespl_max7219_ad
     return ESP_OK;
 }
 
-esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max7219_addr_t addr, uint8_t data) {
+esp_err_t aespl_max7219_send_all(const aespl_max7219_t *cfg, aespl_max7219_addr_t addr, uint8_t data) {
     esp_err_t err;
 
     for (uint8_t i = 0; i < cfg->n_displays; i++) {
@@ -141,7 +141,7 @@ esp_err_t aespl_max7219_send_all(const aespl_max7219_config_t *cfg, aespl_max721
     return aespl_max7219_latch(cfg);
 }
 
-esp_err_t aespl_max7219_clear(const aespl_max7219_config_t *cfg) {
+esp_err_t aespl_max7219_clear(const aespl_max7219_t *cfg) {
     esp_err_t err;
     for (uint8_t i = AESPL_MAX7219_ADDR_DIGIT_0; i <= AESPL_MAX7219_ADDR_DIGIT_7; i++) {
         err = aespl_max7219_send_all(cfg, i, 0);

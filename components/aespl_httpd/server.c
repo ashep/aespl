@@ -14,6 +14,32 @@
 
 static char *log_tag = "aespl_http_server";
 
+esp_err_t static_handler(httpd_req_t *req) {
+    char uri[HTTPD_MAX_URI_LEN + 1];
+    strncpy(uri, req->uri, HTTPD_MAX_URI_LEN);
+    if (strcmp(uri, "/") == 0) {
+        strcpy(uri, "/index.html");
+    }
+
+    FILE *f = fopen(uri, "r");
+    ESP_LOGE(log_tag, "FILE %p", f);
+
+    struct stat st;
+    if (stat(uri, &st) != 0) {
+        ESP_LOGE(log_tag, "%s %d", uri, stat(uri, &st));
+        aespl_httpd_send(req, HTTPD_404, HTTPD_404);
+        return ESP_OK;
+    }
+
+    // st.st_size
+
+
+
+    aespl_httpd_send(req, HTTPD_200, req->uri);
+
+    return ESP_OK;
+}
+
 esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const char *uri,
                              esp_err_t (*handler)(httpd_req_t *r)) {
     if (!server->server) {
@@ -37,7 +63,32 @@ esp_err_t aespl_httpd_handle(aespl_httpd_t *server, httpd_method_t method, const
     return err;
 }
 
+esp_err_t aespl_httpd_handle_spiffs(aespl_httpd_t *server) {
+    FILE *f = fopen("/.list", "r");
+    if (f == NULL) {
+        ESP_LOGE(log_tag, "failed to open listing file");
+        return ESP_ERR_NOT_FOUND;
+    }
+
+    char buf[64];
+    char f_path[64];
+    while (fgets(f_path, sizeof(f_path), f)) {
+        memset(buf, 0, sizeof(buf));
+        strncpy(buf, f_path, strlen(f_path) - 1); // except newline
+
+        aespl_httpd_handle(server, HTTP_GET, buf, static_handler);
+        if (strcmp(buf, "/index.html") == 0) {
+            aespl_httpd_handle(server, HTTP_GET, "/", static_handler);
+        }
+        ESP_LOGI(log_tag, buf);
+    }
+    fclose(f);
+
+    return ESP_OK;
+}
+
 esp_err_t aespl_httpd_send(httpd_req_t *req, const char *status, const char *body) {
+    httpd_resp_set_status(req, status);
     esp_err_t err = httpd_resp_send(req, body, strlen(body));
 
     if (err != ESP_OK) {
